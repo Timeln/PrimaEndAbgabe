@@ -13,7 +13,7 @@
       "coat": {
         "ƒ.CoatTextured": {
           "color": "[1, 1, 1, 1]",
-          "idTexture": "TextureImage|2023-03-22T14:33:59.748Z|03205"
+          "idTexture": "TextureImage|2024-02-21T16:57:45.465Z|57483"
         }
       }
     }
@@ -61,7 +61,7 @@
       "coat": {
         "ƒ.CoatTextured": {
           "color": "[1, 1, 1, 1]",
-          "idTexture": "TextureImage|2023-03-22T14:16:50.622Z|67707"
+          "idTexture": "TextureImage|2024-02-21T17:01:20.513Z|56306"
         }
       }
     }
@@ -151,7 +151,7 @@
             "ƒ.ComponentAudio": {
               "active": true,
               "idResource": "Audio|2023-04-19T19:37:58.758Z|28543",
-              "playing": true,
+              "playing": false,
               "loop": false,
               "volume": 1
             }
@@ -200,90 +200,6 @@
                             "active": true
                           },
                           "idMaterial": "Material|2023-03-22T14:33:18.438Z|17402"
-                        }
-                      }
-                    ]
-                  },
-                  "children": []
-                }
-              },
-              {
-                "ƒ.Node": {
-                  "name": "Flower",
-                  "active": true,
-                  "components": {
-                    "ComponentMesh": [
-                      {
-                        "ƒ.ComponentMesh": {
-                          "idMesh": "MeshQuad|2023-03-22T14:15:43.367Z|55732",
-                          "pivot": {
-                            "translation": "[-4.78700065612793, 0.07000000029802322, 0.0060000005178153515]",
-                            "rotation": "[0, 0, 0]",
-                            "scaling": "[1.459999680519104, 1.4399994611740112, 1]"
-                          },
-                          "Component": {
-                            "active": true
-                          }
-                        }
-                      }
-                    ],
-                    "ComponentMaterial": [
-                      {
-                        "ƒ.ComponentMaterial": {
-                          "sortForAlpha": false,
-                          "clrPrimary": "[1, 1, 1, 1]",
-                          "clrSecondary": "[1, 1, 1, 1]",
-                          "pivot": {
-                            "translation": "[0, 0]",
-                            "rotation": 0,
-                            "scaling": "[1, 1]"
-                          },
-                          "Component": {
-                            "active": true
-                          },
-                          "idMaterial": "Material|2023-03-22T14:49:43.366Z|92097"
-                        }
-                      }
-                    ]
-                  },
-                  "children": []
-                }
-              },
-              {
-                "ƒ.Node": {
-                  "name": "Flower",
-                  "active": true,
-                  "components": {
-                    "ComponentMesh": [
-                      {
-                        "ƒ.ComponentMesh": {
-                          "idMesh": "MeshQuad|2023-03-22T14:15:43.367Z|55732",
-                          "pivot": {
-                            "translation": "[-0.6600000858306885, 3.6110000610351562, 0.01400000136345625]",
-                            "rotation": "[0, 0, 0]",
-                            "scaling": "[1.5000001192092896, 1.5600000619888306, 1]"
-                          },
-                          "Component": {
-                            "active": true
-                          }
-                        }
-                      }
-                    ],
-                    "ComponentMaterial": [
-                      {
-                        "ƒ.ComponentMaterial": {
-                          "sortForAlpha": false,
-                          "clrPrimary": "[1, 1, 1, 1]",
-                          "clrSecondary": "[1, 1, 1, 1]",
-                          "pivot": {
-                            "translation": "[0, 0]",
-                            "rotation": 0,
-                            "scaling": "[1, 1]"
-                          },
-                          "Component": {
-                            "active": true
-                          },
-                          "idMaterial": "Material|2023-03-22T14:49:43.366Z|92097"
                         }
                       }
                     ]
@@ -1372,6 +1288,28 @@
       ],
       "idResource": "Graph|2023-03-22T14:15:18.647Z|32700",
       "type": "Graph"
+    }
+  },
+  "TextureImage|2024-02-21T16:57:45.465Z|57483": {
+    "ƒ.TextureImage": {
+      "url": "images\\backgroundMM.png",
+      "type": "TextureImage",
+      "Texture": {
+        "idResource": "TextureImage|2024-02-21T16:57:45.465Z|57483",
+        "name": "images\\backgroundMM.png",
+        "mipmap": "CRISP"
+      }
+    }
+  },
+  "TextureImage|2024-02-21T17:01:20.513Z|56306": {
+    "ƒ.TextureImage": {
+      "url": "images\\singleblockMM.png",
+      "type": "TextureImage",
+      "Texture": {
+        "idResource": "TextureImage|2024-02-21T17:01:20.513Z|56306",
+        "name": "images\\singleblockMM.png",
+        "mipmap": "CRISP"
+      }
     }
   }
 }
