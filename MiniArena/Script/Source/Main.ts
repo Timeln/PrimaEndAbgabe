@@ -12,7 +12,9 @@ namespace Script {
   //let isGrounded: boolean = true;
   //let gravity: number = 0.3;
   //let ySpeed: number = 1;
+
   document.addEventListener("interactiveViewportStarted", <EventListener>start);
+
 
   function start(_event: CustomEvent): void {
     viewport = _event.detail;
