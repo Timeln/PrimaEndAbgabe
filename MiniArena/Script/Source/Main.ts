@@ -12,6 +12,7 @@ namespace Script {
   export let enemyrigidbody: ƒ.ComponentRigidbody;
   export let NPC: ƒ.Node;
   export let viewport: ƒ.Viewport;
+  let pos: ƒ.Vector3 = knuckles.mtxLocal.translation;
 
   document.addEventListener("interactiveViewportStarted", <EventListener>start);
 
@@ -102,7 +103,7 @@ namespace Script {
 
   function update(_event: Event): void {
     knucklesAvatar.mtxLocal.rotation = ƒ.Vector3.Y(animationState.includes("left") ? 180 : 0);
-    collision();
+
     moveEnemy();
     // ƒ.Physics.simulate();  // if physics is included and used
     //ySpeed += gravity;
@@ -166,7 +167,6 @@ namespace Script {
       cmpAudio.setAudio(audioJump);
       cmpAudio.play(true);
       cmpAudio.volume = 2;
-      collision();
     }
   ySpeed += gravity * timeFrame;
     let pos: ƒ.Vector3 = knucklesAvatar.mtxLocal.translation;
@@ -183,6 +183,14 @@ namespace Script {
     knucklesAvatar.mtxLocal.translation = pos;
     viewport.draw();
   }
+
+  let tileCollided: ƒ.Node = checkCollision(pos);
+    if (tileCollided) {
+      ySpeed = 0;
+      pos.y = tileCollided.mtxWorld.translation.y + 0.5;
+      isGrounded = true;
+    }
+    knuckles.mtxLocal.translation = pos;
   // let tileCollided: ƒ.Node = checkCollision(pos);
   //   if (tileCollided) {
   //     ySpeed = 0;
@@ -213,22 +221,31 @@ namespace Script {
   //   viewport.camera.mtxPivot.mutate(
   //     { "translation": { "x": mutator.translation.x, "y": mutator.translation.y } }
   //   );
-  function collision():void{
-    graph = viewport.getBranch();
-    let floors: ƒ.Node = graph.getChildrenByName("Floor")[0];
-    let pos: ƒ.Vector3 = knuckles.mtxLocal.translation;
-    for (let floor of floors.getChildren()) {
-      let posFloor: ƒ.Vector3 = floor.mtxLocal.translation;
-      if (Math.abs(pos.x - posFloor.x) < 0.5) {
-        if (pos.y < posFloor.y + 0.5) {
-          pos.y = posFloor.y + 0.5;
-          knuckles.mtxLocal.translation = pos;
-          ySpeed = 0;
-        }
-      }
+  // function collision():void{
+  //   graph = viewport.getBranch();
+  //   let floors: ƒ.Node = graph.getChildrenByName("Floor")[0];
+  //   let pos: ƒ.Vector3 = knuckles.mtxLocal.translation;
+  //   for (let floor of floors.getChildren()) {
+  //     let posFloor: ƒ.Vector3 = floor.mtxLocal.translation;
+  //     if (Math.abs(pos.x - posFloor.x) < 0.5) {
+  //       if (pos.y < posFloor.y + 0.5) {
+  //         pos.y = posFloor.y + 0.5;
+  //         knuckles.mtxLocal.translation = pos;
+  //         ySpeed = 0;
+  //       }
+  //     }
+  //   }
+  // }
+  function checkCollision(_posWorld: ƒ.Vector3): ƒ.Node {
+    let tiles: ƒ.Node[] = viewport.getBranch().getChildrenByName("Floor")[0].getChildren()
+    for (let tile of tiles) {
+      let pos: ƒ.Vector3 = ƒ.Vector3.TRANSFORMATION(_posWorld, tile.mtxWorldInverse, true);
+      if (pos.y < 0.5 && pos.x > -0.5 && pos.x < 0.5)
+        return tile;
     }
-  }
 
+    return null;
+  }
 //mtxLocal.translation.y = 0 matrix translation an Y
 //mtxLocal.translation = V neuer Vektor
 }
