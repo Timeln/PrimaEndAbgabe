@@ -31,6 +31,9 @@ namespace Script {
    //Sprite Animations
    let knucklesWalkAnimation: ƒAid.SpriteSheetAnimation;
    let knucklesJumpAnimation: ƒAid.SpriteSheetAnimation;
+   let knucklesDeathAnimation: ƒAid.SpriteSheetAnimation;
+   let knucklesAttackAnimation: ƒAid.SpriteSheetAnimation;
+   let knucklesStandingAnimation: ƒAid.SpriteSheetAnimation;
  
    function initAnimations(coat: ƒ.CoatTextured): void {
      knucklesWalkAnimation = new ƒAid.SpriteSheetAnimation("Walk", coat);
@@ -38,14 +41,26 @@ namespace Script {
  
      knucklesJumpAnimation = new ƒAid.SpriteSheetAnimation("Jump", coat);
      knucklesJumpAnimation.generateByGrid(ƒ.Rectangle.GET(520, 324 , 40, 45), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
+
+     knucklesDeathAnimation = new ƒAid.SpriteSheetAnimation("Death", coat);
+     knucklesDeathAnimation.generateByGrid(ƒ.Rectangle.GET(820, 324 , 40, 45), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
  
+    knucklesAttackAnimation = new ƒAid.SpriteSheetAnimation("Attack", coat);
+    knucklesAttackAnimation.generateByGrid(ƒ.Rectangle.GET(1220, 150 , 40, 45), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
+
+    knucklesStandingAnimation = new ƒAid.SpriteSheetAnimation("Standing", coat);
+    knucklesStandingAnimation.generateByGrid(ƒ.Rectangle.GET(10, 324 , 40, 45), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
+
    }
  
   let audioJump: ƒ.Audio;
+  let audioDeath: ƒ.Audio;
+  let audioAmbient: ƒ.Audio;
  
     function initializeSounds(): void {
-      //audioDeath = new ƒ.Audio("./sounds/death.wav");
+      audioDeath = new ƒ.Audio("./sounds/death.wav");
       audioJump = new ƒ.Audio("./sounds/jump.wav");
+      audioAmbient = new ƒ.Audio("./sounds/music.wav");
     }
  
    //knucklesSprite
@@ -69,6 +84,8 @@ namespace Script {
      knucklesAvatar.setFrameDirection(1);
      knucklesAvatar.framerate = 20;
      
+     knucklesAvatar.setAnimation(knucklesDeathAnimation)
+
      knucklesAvatar.mtxLocal.translateY(0);
      knucklesAvatar.mtxLocal.translateZ(2);
      knucklesAvatar.mtxLocal.scaleX(1.5);
@@ -103,6 +120,8 @@ namespace Script {
         knucklesAvatar.setAnimation(knucklesWalkAnimation);
         return;
       }
+      else
+      animationState = "standing";
     }
     if(ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A])){
       knucklesAvatar.mtxLocal.translateX(2 * timeFrame);
@@ -111,11 +130,24 @@ namespace Script {
         knucklesAvatar.setAnimation(knucklesWalkAnimation);
         return;
       }
+      else
+        animationState = "standing";
     }
     if(animationState.includes("standing")){
-      knucklesAvatar.showFrame(0);
-      return;
+        animationState = "standing";
+        knucklesAvatar.setAnimation(knucklesStandingAnimation);
+        return;
     }
+
+    if(ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.E])){
+      if(animationState != "attack"){
+        animationState = "attack";
+        knucklesAvatar.setAnimation(knucklesAttackAnimation);
+      }
+    }
+        //if(death = true){
+    //  animationState = 
+    //}
 
     //if (pos.y > -0.5)
       //knuckles.mtxLocal.translateY(-0.2);
@@ -126,15 +158,18 @@ namespace Script {
         //isGrounded = false;
       //if (pos.y > 0)
         //knuckles.mtxLocal.translateY(-0.3);
-      if (isGrounded && ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.SPACE, ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W])) {
-        ySpeed = 5;
-        isGrounded = false;
-        knucklesAvatar.setAnimation(knucklesJumpAnimation);
-        cmpAudio.setAudio(audioJump);
-        cmpAudio.play(true);
-        cmpAudio.volume = 4;
+    if (isGrounded && ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.SPACE, ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W])) {
+      ySpeed = 5;
+      isGrounded = false;
+      knucklesAvatar.setAnimation(knucklesJumpAnimation);
+      cmpAudio.setAudio(audioJump);
+      cmpAudio.play(true);
+      cmpAudio.volume = 2;
       collision();
-  }
+    }
+
+
+
   ySpeed += gravity * timeFrame;
     let pos: ƒ.Vector3 = knucklesAvatar.mtxLocal.translation;
     pos.y += ySpeed * timeFrame;
@@ -142,6 +177,10 @@ namespace Script {
       ySpeed = 0;
       pos.y = -2.5;
       isGrounded = true;
+    }
+    if(isGrounded = true){
+      cmpAudio.setAudio(audioAmbient);
+      cmpAudio.volume = 1;
     }
     knucklesAvatar.mtxLocal.translation = pos;
     viewport.draw();
