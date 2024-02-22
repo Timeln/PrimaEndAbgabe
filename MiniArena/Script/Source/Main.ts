@@ -3,15 +3,15 @@ namespace Script {
   //import ƒAid = FudgeAid;
   ƒ.Debug.info("Main Program Template running!");
 
-  let viewport: ƒ.Viewport;
+  //let viewport: ƒ.Viewport;
   let graph: ƒ.Node;
-  let knuckles: ƒ.Node; 
+  export let knuckles: ƒ.Node; 
   let gravity: number = -7.81;
   let ySpeed: number = 0;
   let isGrounded: boolean = true;
-  //let isGrounded: boolean = true;
-  //let gravity: number = 0.3;
-  //let ySpeed: number = 1;
+  export let enemyrigidbody: ƒ.ComponentRigidbody;
+  export let NPC: ƒ.Node;
+  export let viewport: ƒ.Viewport;
 
   document.addEventListener("interactiveViewportStarted", <EventListener>start);
 
@@ -54,11 +54,11 @@ namespace Script {
    }
  
   let audioJump: ƒ.Audio;
-  let audioDeath: ƒ.Audio;
+  //let audioDeath: ƒ.Audio;
   let audioAmbient: ƒ.Audio;
  
     function initializeSounds(): void {
-      audioDeath = new ƒ.Audio("./sounds/death.wav");
+      //audioDeath = new ƒ.Audio("./sounds/death.wav");
       audioJump = new ƒ.Audio("./sounds/jump.wav");
       audioAmbient = new ƒ.Audio("./sounds/music.wav");
     }
@@ -103,6 +103,7 @@ namespace Script {
   function update(_event: Event): void {
     knucklesAvatar.mtxLocal.rotation = ƒ.Vector3.Y(animationState.includes("left") ? 180 : 0);
     collision();
+    moveEnemy();
     // ƒ.Physics.simulate();  // if physics is included and used
     //ySpeed += gravity;
     //viewport.draw();
@@ -167,9 +168,6 @@ namespace Script {
       cmpAudio.volume = 2;
       collision();
     }
-
-
-
   ySpeed += gravity * timeFrame;
     let pos: ƒ.Vector3 = knucklesAvatar.mtxLocal.translation;
     pos.y += ySpeed * timeFrame;
