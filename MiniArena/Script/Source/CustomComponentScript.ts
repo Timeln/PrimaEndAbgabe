@@ -43,14 +43,14 @@ namespace Script {
     //   // undefined properties and private fields (#) will not be included by default
     // }
   }
-  export function moveEnemy(){
-    NPC= viewport.getBranch().getChildrenByName("NPC")[0];
-    enemyrigidbody = NPC.getComponent(ƒ.ComponentRigidbody);
-    let positionSteve: ƒ.Vector3 = knuckles.mtxWorld.translation;
-    let positionCreeper: ƒ.Vector3 = NPC.mtxWorld.translation;
+  // export function moveEnemy(){
+  //   NPC= viewport.getBranch().getChildrenByName("NPC")[0];
+  //   enemyrigidbody = NPC.getComponent(ƒ.ComponentRigidbody);
+  //   let positionSteve: ƒ.Vector3 = knuckles.mtxWorld.translation;
+  //   let positionCreeper: ƒ.Vector3 = NPC.mtxWorld.translation;
 
-    let movementVector= ƒ.Vector3.DIFFERENCE(positionSteve, positionCreeper);
-    movementVector.normalize(100);
-    enemyrigidbody.applyForce(movementVector);
-  }
+  //   let movementVector= ƒ.Vector3.DIFFERENCE(positionSteve, positionCreeper);
+  //   movementVector.normalize(100);
+  //   enemyrigidbody.applyForce(movementVector);
+  // }
 }

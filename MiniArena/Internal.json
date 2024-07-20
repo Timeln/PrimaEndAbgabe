@@ -72,8 +72,19 @@
       "coat": {
         "ƒ.CoatTextured": {
           "color": "[1, 1, 1, 1]",
-          "idTexture": "TextureImage|2024-02-21T17:01:20.513Z|56306"
+          "idTexture": "TextureImage|2024-02-22T15:52:48.134Z|74401"
         }
+      }
+    }
+  },
+  "TextureImage|2024-02-22T15:52:48.134Z|74401": {
+    "ƒ.TextureImage": {
+      "url": "images\\singleblockMA.png",
+      "type": "TextureImage",
+      "Texture": {
+        "idResource": "TextureImage|2024-02-22T15:52:48.134Z|74401",
+        "name": "images\\singleblockMA.png",
+        "mipmap": "CRISP"
       }
     }
   },
@@ -173,7 +184,7 @@
             "ƒ.ComponentAudio": {
               "active": true,
               "idResource": "Audio|2023-04-19T19:37:58.758Z|28543",
-              "playing": true,
+              "playing": false,
               "loop": false,
               "volume": 1
             }
@@ -199,7 +210,7 @@
                           "pivot": {
                             "translation": "[0, 0, 0]",
                             "rotation": "[0, 0, 0]",
-                            "scaling": "[11.039999961853027, 11, 1]"
+                            "scaling": "[14.039999961853027, 14, 1]"
                           },
                           "Component": {
                             "active": true
@@ -804,7 +815,7 @@
                                     "ƒ.ComponentMesh": {
                                       "idMesh": "MeshQuad|2023-03-22T14:15:43.367Z|55732",
                                       "pivot": {
-                                        "translation": "[-11, 11, 0]",
+                                        "translation": "[-11, 11.3410005569458, 0]",
                                         "rotation": "[0, 0, 0]",
                                         "scaling": "[11, 11, 1]"
                                       },

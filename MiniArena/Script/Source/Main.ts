@@ -3,25 +3,21 @@ namespace Script {
   //import ƒAid = FudgeAid;
   ƒ.Debug.info("Main Program Template running!");
 
-  //let viewport: ƒ.Viewport;
   let graph: ƒ.Node;
-  export let knuckles: ƒ.Node; 
+  let viewport: ƒ.Viewport;
+  let knuckles: ƒ.Node; 
+  document.addEventListener("interactiveViewportStarted", <EventListener>start);
+  //export let enemyrigidbody: ƒ.ComponentRigidbody;
+  //export let NPC: ƒ.Node;
+ 
   let gravity: number = -7.81;
   let ySpeed: number = 0;
   let isGrounded: boolean = true;
-  export let enemyrigidbody: ƒ.ComponentRigidbody;
-  export let NPC: ƒ.Node;
-  export let viewport: ƒ.Viewport;
-  let pos: ƒ.Vector3 = knuckles.mtxLocal.translation;
 
-  document.addEventListener("interactiveViewportStarted", <EventListener>start);
-
-
+  
   function start(_event: CustomEvent): void {
     viewport = _event.detail;
     graph = viewport.getBranch();
-    knuckles = graph.getChildrenByName("Charakter")[0].getChildrenByName("knuckles")[0];
-    knuckles.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
     let cmpCamera: ƒ.ComponentCamera = viewport.getBranch().getComponent(ƒ.ComponentCamera);
     viewport.camera = cmpCamera;
     ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
@@ -58,11 +54,11 @@ namespace Script {
   //let audioDeath: ƒ.Audio;
   let audioAmbient: ƒ.Audio;
  
-    function initializeSounds(): void {
-      //audioDeath = new ƒ.Audio("./sounds/death.wav");
-      audioJump = new ƒ.Audio("./sounds/jump.wav");
-      audioAmbient = new ƒ.Audio("./sounds/music.wav");
-    }
+  function initializeSounds(): void {
+    //audioDeath = new ƒ.Audio("./sounds/death.wav");
+    audioJump = new ƒ.Audio("./sounds/jump.wav");
+    audioAmbient = new ƒ.Audio("./sounds/music.wav");
+  }
  
    //knucklesSprite
    let animationState: string = "standing";
@@ -71,11 +67,17 @@ namespace Script {
    
  
    async function knucklesNodeInit(_event: Event): Promise<void> {
+     
      let knucklesSpriteSheet: ƒ.TextureImage = new ƒ.TextureImage();
      await knucklesSpriteSheet.load("./images/knucklesprite.png");
      let coat: ƒ.CoatTextured = new ƒ.CoatTextured(undefined, knucklesSpriteSheet);
- 
+     
      initAnimations(coat);
+
+     knuckles = graph.getChildrenByName("Charakter")[0].getChildrenByName("knuckles")[0];
+     knuckles.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
+ 
+     
      initializeSounds();
  
      knucklesAvatar = new ƒAid.NodeSprite("knuckles_Sprite");
@@ -85,7 +87,7 @@ namespace Script {
      knucklesAvatar.setFrameDirection(1);
      knucklesAvatar.framerate = 20;
      
-     knucklesAvatar.setAnimation(knucklesDeathAnimation)
+     knucklesAvatar.setAnimation(knucklesDeathAnimation);
 
      knucklesAvatar.mtxLocal.translateY(0);
      knucklesAvatar.mtxLocal.translateZ(2);
@@ -96,25 +98,19 @@ namespace Script {
      graph = viewport.getBranch();
      graph.addChild(knucklesAvatar);
  
-    cmpAudio = graph.getComponent(ƒ.ComponentAudio);
-    cmpAudio.connect(true);
-    cmpAudio.volume = 1;
+     cmpAudio = graph.getComponent(ƒ.ComponentAudio);
+     cmpAudio.connect(true);
+     cmpAudio.volume = 1;
+
+     ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
+     ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
    }
 
   function update(_event: Event): void {
-    knucklesAvatar.mtxLocal.rotation = ƒ.Vector3.Y(animationState.includes("left") ? 180 : 0);
-
-    moveEnemy();
-    // ƒ.Physics.simulate();  // if physics is included and used
-    //ySpeed += gravity;
-    //viewport.draw();
+    
+    //moveEnemy();
     ƒ.AudioManager.default.update();
     let timeFrame: number = ƒ.Loop.timeFrameGame / 1000; // time since last frame in seconds
-    //let graph: ƒ.Node = viewport.getBranch();
-    //let knuckles: ƒ.Node = graph.getChildrenByName("Charakter")[0].getChildrenByName("knuckles")[0];
-    //console.log(graph.getChildrenByName("Charakter")[0].getChildrenByName("knuckles")[0]);
-    //knuckles.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
-    //knuckles.mtxLocal.translateX(1);+
     if(ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT, ƒ.KEYBOARD_CODE.D])){
       knucklesAvatar.mtxLocal.translateX(2 * timeFrame);
       if(animationState != "walkright"){
@@ -122,9 +118,8 @@ namespace Script {
         knucklesAvatar.setAnimation(knucklesWalkAnimation);
         return;
       }
-      else
-      animationState = "standing";
     }
+
     if(ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A])){
       knucklesAvatar.mtxLocal.translateX(2 * timeFrame);
       if(animationState != "walkleft"){
@@ -132,9 +127,8 @@ namespace Script {
         knucklesAvatar.setAnimation(knucklesWalkAnimation);
         return;
       }
-      else
-        animationState = "standing";
     }
+
     if(animationState.includes("standing")){
         animationState = "standing";
         knucklesAvatar.setAnimation(knucklesStandingAnimation);
@@ -147,19 +141,9 @@ namespace Script {
         knucklesAvatar.setAnimation(knucklesAttackAnimation);
       }
     }
-        //if(death = true){
-    //  animationState = 
-    //}
 
-    //if (pos.y > -0.5)
-      //knuckles.mtxLocal.translateY(-0.2);
-    //else
-      //knuckles.mtxLocal.translateY(+1);
-      //if(ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.SPACE, ƒ.KEYBOARD_CODE.ARROW_UP]))
-        //knuckles.mtxLocal.translateY(+1);
-        //isGrounded = false;
-      //if (pos.y > 0)
-        //knuckles.mtxLocal.translateY(-0.3);
+    knucklesAvatar.mtxLocal.rotation = ƒ.Vector3.Y(animationState.includes("left") ? 180 : 0);
+
     if (isGrounded && ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.SPACE, ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W])) {
       ySpeed = 5;
       isGrounded = false;
@@ -171,12 +155,21 @@ namespace Script {
   ySpeed += gravity * timeFrame;
     let pos: ƒ.Vector3 = knucklesAvatar.mtxLocal.translation;
     pos.y += ySpeed * timeFrame;
+
+    let tileCollided: ƒ.Node = checkCollision(pos);
+    if (tileCollided) {
+      ySpeed = 0;
+      pos.y = tileCollided.mtxWorld.translation.y + 0.5;
+      isGrounded = true;
+    }
+    knuckles.mtxLocal.translation = pos;
+
     if (pos.y < -2.5) {
       ySpeed = 0;
       pos.y = -2.5;
       isGrounded = true;
     }
-    if(isGrounded = true){
+    if(isGrounded == true){
       cmpAudio.setAudio(audioAmbient);
       cmpAudio.volume = 1;
     }
@@ -184,59 +177,9 @@ namespace Script {
     viewport.draw();
   }
 
-  let tileCollided: ƒ.Node = checkCollision(pos);
-    if (tileCollided) {
-      ySpeed = 0;
-      pos.y = tileCollided.mtxWorld.translation.y + 0.5;
-      isGrounded = true;
-    }
-    knuckles.mtxLocal.translation = pos;
-  // let tileCollided: ƒ.Node = checkCollision(pos);
-  //   if (tileCollided) {
-  //     ySpeed = 0;
-  //     pos.y = tileCollided.mtxWorld.translation.y + 0.5;
-  //     isGrounded = true;
-  //   }
-  //   knuckles.mtxLocal.translation = pos;
-
-  //   followCamera();
-
-
-  //   viewport.draw();
-  //   ƒ.AudioManager.default.update();
-  // }
-
-  // function checkCollision(_posWorld: ƒ.Vector3): ƒ.Node {
-  //   let tiles: ƒ.Node[] = viewport.getBranch().getChildrenByName("Terrain")[0].getChildren()
-  //   for (let tile of tiles) {
-  //     let pos: ƒ.Vector3 = ƒ.Vector3.TRANSFORMATION(_posWorld, tile.mtxWorldInverse, true);
-  //     if (pos.y < 0.5 && pos.x > -0.5 && pos.x < 0.5)
-  //       return tile;
-  //   }
-
-  //   return null;
-  // }
-  // function followCamera() {
-  //   let mutator: ƒ.Mutator = knuckles.mtxLocal.getMutator();
-  //   viewport.camera.mtxPivot.mutate(
-  //     { "translation": { "x": mutator.translation.x, "y": mutator.translation.y } }
-  //   );
-  // function collision():void{
-  //   graph = viewport.getBranch();
-  //   let floors: ƒ.Node = graph.getChildrenByName("Floor")[0];
-  //   let pos: ƒ.Vector3 = knuckles.mtxLocal.translation;
-  //   for (let floor of floors.getChildren()) {
-  //     let posFloor: ƒ.Vector3 = floor.mtxLocal.translation;
-  //     if (Math.abs(pos.x - posFloor.x) < 0.5) {
-  //       if (pos.y < posFloor.y + 0.5) {
-  //         pos.y = posFloor.y + 0.5;
-  //         knuckles.mtxLocal.translation = pos;
-  //         ySpeed = 0;
-  //       }
-  //     }
-  //   }
-  // }
+  
   function checkCollision(_posWorld: ƒ.Vector3): ƒ.Node {
+    
     let tiles: ƒ.Node[] = viewport.getBranch().getChildrenByName("Floor")[0].getChildren()
     for (let tile of tiles) {
       let pos: ƒ.Vector3 = ƒ.Vector3.TRANSFORMATION(_posWorld, tile.mtxWorldInverse, true);
