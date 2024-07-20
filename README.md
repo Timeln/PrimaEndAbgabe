@@ -2,13 +2,11 @@
 MiniArena
 Timo Melnicki
 265173
-Wintersemester 2023/24
+Sommersemester 2024
 Kurs: Prototyping interaktiver Medien - Apps und Games
 Dozent: Jirka Dell´Oro
-Spiel:
+Spiel: "Moorhuhn"
 Github Repo:
 
-Movement: W,A,S,D
-Jump: W,Space 
 Attack: Left Mouse Click
 

@@ -10,7 +10,7 @@ namespace Script {
   //export let enemyrigidbody: ƒ.ComponentRigidbody;
   //export let NPC: ƒ.Node;
  
-  let gravity: number = -7.81;
+  let gravity: number = -9.81;
   let ySpeed: number = 0;
   let isGrounded: boolean = true;
 
