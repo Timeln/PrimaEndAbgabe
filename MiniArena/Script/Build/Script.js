@@ -52,72 +52,114 @@ var Script;
     ƒ.Debug.info("Main Program Template running!");
     let graph;
     let viewport;
-    let knuckles;
+    let chickenContainer; //Hold
+    let chicken;
+    let rng;
+    let time;
     document.addEventListener("interactiveViewportStarted", start);
     //export let enemyrigidbody: ƒ.ComponentRigidbody;
     //export let NPC: ƒ.Node;
-    let gravity = -7.81;
+    let gravity = -9.81;
     let ySpeed = 0;
     let isGrounded = true;
+    // resources
+    let chickenSpriteSheet = new ƒ.TextureImage();
     function start(_event) {
         viewport = _event.detail;
         graph = viewport.getBranch();
+        chickenContainer = new ƒ.Node("ChickenContainer");
         let cmpCamera = viewport.getBranch().getComponent(ƒ.ComponentCamera);
         viewport.camera = cmpCamera;
+        rng = new ƒ.Random(0); // TODO non-deterministc seed
+        time = new ƒ.Time();
         ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
-        knucklesNodeInit(_event);
+        chickenNodeInit(_event);
+        // Load resources
+        chickenSpriteSheet.load("./images/chickenSpriteSheet.jpg");
     }
     //Sprite Animations
-    let knucklesWalkAnimation;
-    let knucklesJumpAnimation;
-    let knucklesDeathAnimation;
-    let knucklesAttackAnimation;
-    let knucklesStandingAnimation;
+    let chickenFlyAnimation;
+    let chickenDeathAnimation;
     function initAnimations(coat) {
-        knucklesWalkAnimation = new ƒAid.SpriteSheetAnimation("Walk", coat);
-        knucklesWalkAnimation.generateByGrid(ƒ.Rectangle.GET(10, 85, 40, 45), 4, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
-        knucklesJumpAnimation = new ƒAid.SpriteSheetAnimation("Jump", coat);
-        knucklesJumpAnimation.generateByGrid(ƒ.Rectangle.GET(520, 324, 40, 45), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
-        knucklesDeathAnimation = new ƒAid.SpriteSheetAnimation("Death", coat);
-        knucklesDeathAnimation.generateByGrid(ƒ.Rectangle.GET(820, 324, 40, 45), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
-        knucklesAttackAnimation = new ƒAid.SpriteSheetAnimation("Attack", coat);
-        knucklesAttackAnimation.generateByGrid(ƒ.Rectangle.GET(1220, 150, 40, 45), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
-        knucklesStandingAnimation = new ƒAid.SpriteSheetAnimation("Standing", coat);
-        knucklesStandingAnimation.generateByGrid(ƒ.Rectangle.GET(10, 324, 40, 45), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
+        chickenFlyAnimation = new ƒAid.SpriteSheetAnimation("Fly", coat);
+        chickenFlyAnimation.generateByGrid(ƒ.Rectangle.GET(0, 0, 366, 103), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
+        chickenDeathAnimation = new ƒAid.SpriteSheetAnimation("Death", coat);
+        chickenDeathAnimation.generateByGrid(ƒ.Rectangle.GET(255, 266, 447, 355), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
     }
-    let audioJump;
     //let audioDeath: ƒ.Audio;
     let audioAmbient;
     function initializeSounds() {
         //audioDeath = new ƒ.Audio("./sounds/death.wav");
-        audioJump = new ƒ.Audio("./sounds/jump.wav");
+        //audioJump = new ƒ.Audio("./sounds/jump.wav");
         audioAmbient = new ƒ.Audio("./sounds/music.wav");
     }
-    //knucklesSprite
-    let animationState = "standing";
-    let knucklesAvatar;
+    //chickenSprite
+    let chickenAvatar;
     let cmpAudio;
-    async function knucklesNodeInit(_event) {
-        let knucklesSpriteSheet = new ƒ.TextureImage();
-        await knucklesSpriteSheet.load("./images/knucklesprite.png");
-        let coat = new ƒ.CoatTextured(undefined, knucklesSpriteSheet);
+    // Spawning
+    let minSpawnInterval = 500; // In miliseconds
+    let timeSinceLastSpawn = 0.0;
+    //let maxChickens: number = 10;
+    //let chickens: number = 0;
+    let animationState = "standing";
+    function constructChicken() {
+        let coat = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
         initAnimations(coat);
-        knuckles = graph.getChildrenByName("Charakter")[0].getChildrenByName("knuckles")[0];
-        knuckles.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
+        //chicken = graph.getChildrenByName("Charakter")[0].getChildrenByName("chicken")[0];
+        //
+        //initializeSounds();
+        let newChicken = new ƒAid.NodeSprite("chicken_Sprite");
+        newChicken.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4()));
+        newChicken.setAnimation(chickenFlyAnimation);
+        newChicken.setFrameDirection(1);
+        newChicken.framerate = 20;
+        //newChicken.setAnimation(chickenDeathAnimation);
+        //cmpAudio = graph.getComponent(ƒ.ComponentAudio);
+        //cmpAudio.connect(true);
+        //cmpAudio.volume = 1;
+        //ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
+        //ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
+        return newChicken;
+    }
+    // Should we spawn a chicken in this frame or not?
+    function spawnChicken() {
+        let now = time.get();
+        // Enough time elapsed to spawn a new chicken?
+        if (now - timeSinceLastSpawn > minSpawnInterval) {
+            //let newChicken = new ƒAid.NodeSprite("chicken");
+            let newChicken = constructChicken();
+            newChicken.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4()));
+            //newChicken.setAnimation(chickenFlyAnimation);
+            //newChicken.setFrameDirection(1);
+            //newChicken.framerate = 20;
+            //newChicken.setAnimation(chickenDeathAnimation);
+            newChicken.mtxLocal.translate(rng.getVector3(new ƒ.Vector3(-5, -5, -5), new ƒ.Vector3(5, 5, 5)));
+            newChicken.mtxLocal.scaleX(1);
+            newChicken.mtxLocal.scaleY(1);
+            chickenContainer.addChild(newChicken);
+        }
+    }
+    async function chickenNodeInit(_event) {
+        let chickenSpriteSheet = new ƒ.TextureImage();
+        await chickenSpriteSheet.load("./images/chickenSpriteSheet.jpg");
+        let coat = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
+        initAnimations(coat);
+        chicken = graph.getChildrenByName("Charakter")[0].getChildrenByName("chicken")[0];
+        chicken.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
         initializeSounds();
-        knucklesAvatar = new ƒAid.NodeSprite("knuckles_Sprite");
-        knucklesAvatar.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4()));
-        knucklesAvatar.setAnimation(knucklesWalkAnimation);
-        knucklesAvatar.setFrameDirection(1);
-        knucklesAvatar.framerate = 20;
-        knucklesAvatar.setAnimation(knucklesDeathAnimation);
-        knucklesAvatar.mtxLocal.translateY(0);
-        knucklesAvatar.mtxLocal.translateZ(2);
-        knucklesAvatar.mtxLocal.scaleX(1.5);
-        knucklesAvatar.mtxLocal.scaleY(2);
+        chickenAvatar = new ƒAid.NodeSprite("chicken_Sprite");
+        chickenAvatar.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4()));
+        chickenAvatar.setAnimation(chickenFlyAnimation);
+        chickenAvatar.setFrameDirection(1);
+        chickenAvatar.framerate = 20;
+        chickenAvatar.setAnimation(chickenDeathAnimation);
+        chickenAvatar.mtxLocal.translateY(0);
+        chickenAvatar.mtxLocal.translateZ(2);
+        chickenAvatar.mtxLocal.scaleX(1.5);
+        chickenAvatar.mtxLocal.scaleY(2);
         graph = viewport.getBranch();
-        graph.addChild(knucklesAvatar);
+        graph.addChild(chickenAvatar);
         cmpAudio = graph.getComponent(ƒ.ComponentAudio);
         cmpAudio.connect(true);
         cmpAudio.volume = 1;
@@ -125,55 +167,31 @@ var Script;
         ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
     }
     function update(_event) {
+        spawnChicken();
         //moveEnemy();
         ƒ.AudioManager.default.update();
         let timeFrame = ƒ.Loop.timeFrameGame / 1000; // time since last frame in seconds
         if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT, ƒ.KEYBOARD_CODE.D])) {
-            knucklesAvatar.mtxLocal.translateX(2 * timeFrame);
-            if (animationState != "walkright") {
-                animationState = "walkright";
-                knucklesAvatar.setAnimation(knucklesWalkAnimation);
+            chickenAvatar.mtxLocal.translateX(2 * timeFrame);
+            if (animationState != "flyright") {
+                animationState = "flyright";
+                chickenAvatar.setAnimation(chickenFlyAnimation);
                 return;
             }
         }
         if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A])) {
-            knucklesAvatar.mtxLocal.translateX(2 * timeFrame);
-            if (animationState != "walkleft") {
-                animationState = "walkleft";
-                knucklesAvatar.setAnimation(knucklesWalkAnimation);
+            chickenAvatar.mtxLocal.translateX(2 * timeFrame);
+            if (animationState != "flyleft") {
+                animationState = "flyleft";
+                chickenAvatar.setAnimation(chickenFlyAnimation);
                 return;
             }
         }
-        if (animationState.includes("standing")) {
-            animationState = "standing";
-            knucklesAvatar.setAnimation(knucklesStandingAnimation);
-            return;
-        }
-        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.E])) {
-            if (animationState != "attack") {
-                animationState = "attack";
-                knucklesAvatar.setAnimation(knucklesAttackAnimation);
-            }
-        }
-        knucklesAvatar.mtxLocal.rotation = ƒ.Vector3.Y(animationState.includes("left") ? 180 : 0);
-        if (isGrounded && ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.SPACE, ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W])) {
-            ySpeed = 5;
-            isGrounded = false;
-            knucklesAvatar.setAnimation(knucklesJumpAnimation);
-            cmpAudio.setAudio(audioJump);
-            cmpAudio.play(true);
-            cmpAudio.volume = 2;
-        }
+        chickenAvatar.mtxLocal.rotation = ƒ.Vector3.Y(animationState.includes("left") ? 180 : 0);
         ySpeed += gravity * timeFrame;
-        let pos = knucklesAvatar.mtxLocal.translation;
+        let pos = chickenAvatar.mtxLocal.translation;
         pos.y += ySpeed * timeFrame;
-        let tileCollided = checkCollision(pos);
-        if (tileCollided) {
-            ySpeed = 0;
-            pos.y = tileCollided.mtxWorld.translation.y + 0.5;
-            isGrounded = true;
-        }
-        knuckles.mtxLocal.translation = pos;
+        chicken.mtxLocal.translation = pos;
         if (pos.y < -2.5) {
             ySpeed = 0;
             pos.y = -2.5;
@@ -183,17 +201,8 @@ var Script;
             cmpAudio.setAudio(audioAmbient);
             cmpAudio.volume = 1;
         }
-        knucklesAvatar.mtxLocal.translation = pos;
+        chickenAvatar.mtxLocal.translation = pos;
         viewport.draw();
-    }
-    function checkCollision(_posWorld) {
-        let tiles = viewport.getBranch().getChildrenByName("Floor")[0].getChildren();
-        for (let tile of tiles) {
-            let pos = ƒ.Vector3.TRANSFORMATION(_posWorld, tile.mtxWorldInverse, true);
-            if (pos.y < 0.5 && pos.x > -0.5 && pos.x < 0.5)
-                return tile;
-        }
-        return null;
     }
     //mtxLocal.translation.y = 0 matrix translation an Y
     //mtxLocal.translation = V neuer Vektor
