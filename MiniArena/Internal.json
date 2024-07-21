@@ -103,9 +103,9 @@
             "ƒ.ComponentAudio": {
               "active": true,
               "idResource": "Audio|2023-04-19T19:37:58.758Z|28543",
-              "playing": false,
+              "playing": true,
               "loop": false,
-              "volume": 1
+              "volume": 0.05000000074505806
             }
           }
         ]
@@ -127,7 +127,7 @@
                         "ƒ.ComponentMesh": {
                           "idMesh": "MeshQuad|2023-03-22T14:15:43.367Z|55732",
                           "pivot": {
-                            "translation": "[0, 0, 0]",
+                            "translation": "[0, 0, -5]",
                             "rotation": "[0, 0, 0]",
                             "scaling": "[14.039999961853027, 14, 1]"
                           },
