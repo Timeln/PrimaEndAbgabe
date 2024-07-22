@@ -3,38 +3,69 @@ var Script;
 (function (Script) {
     var ƒ = FudgeCore;
     class Chicken extends ƒ.Node {
-        constructor(_name, _position, _size, speed) {
+        constructor(_name, _position, _size, direction) {
             super(_name);
+            this.rigidBody = new ƒ.ComponentRigidbody(Chicken.MASS);
+            this.alive = true;
             this.velocity = ƒ.Vector3.ZERO();
-            this.speed = speed;
+            this.direction = direction;
             this.rect = new ƒ.Rectangle(_position.x, _position.y, _size.x, _size.y, ƒ.ORIGIN2D.CENTER);
             this.addComponent(new ƒ.ComponentTransform(ƒ.Matrix4x4.TRANSLATION(_position.toVector3(0))));
+            this.rigidBody.effectGravity = 0.1;
+            this.rigidBody.applyLinearImpulse(new ƒ.Vector3(direction, 0, 0));
+            this.addComponent(this.rigidBody);
             let cmpQuad = new ƒ.ComponentMesh(Chicken.meshQuad);
             this.addComponent(cmpQuad);
             //cmpQuad.pivot.scale(_size.toVector3(0));
-            let cMaterial = new ƒ.ComponentMaterial(Chicken.mtrSolidWhite);
-            this.addComponent(cMaterial);
+            this.addComponent(Chicken.materialAlive);
             //this.velocity = new ƒ.Vector3(ƒ.Random.default.getRange(-1, 1), ƒ.Random.default.getRange(-1, 1), 0);
-            this.velocity = new ƒ.Vector3(speed, 0, 0);
+            //this.velocity = new ƒ.Vector3(direction, 0, 0);
             //this.velocity.normalize(this.speed);
         }
         /**
          * move moves the game object and the collision detection reactangle
          */
         move() {
-            let frameTime = ƒ.Loop.timeFrameGame / 1000;
-            let distance = ƒ.Vector3.SCALE(this.velocity, frameTime);
-            this.translate(distance);
+            //let frameTime: number = ƒ.Loop.timeFrameGame / 1000;
+            //let force: ƒ.Vector3 = ƒ.Vector3.SCALE(new ƒ.Vector3(0, 9.81, 0), frameTime);
+            this.flap();
+            //this.translate(distance);
+        }
+        flap() {
+            console.log("Current velocity: " + this.rigidBody.getVelocity().y);
+            if (this.alive && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
+                console.log("FLAP!");
+                this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.direction / 2, Chicken.FLAP_FORCE, 0));
+            }
         }
         translate(_distance) {
             this.mtxLocal.translate(_distance);
             this.rect.position.x = this.mtxLocal.translation.x - this.rect.size.x / 2;
             this.rect.position.y = this.mtxLocal.translation.y - this.rect.size.y / 2;
         }
+        getPosition() {
+            return this.rigidBody.getPosition();
+        }
+        hit() {
+            if (this.alive) {
+                this.alive = false;
+                this.removeComponent(Chicken.materialAlive);
+                this.addComponent(Chicken.materialDead);
+            }
+        }
+        isAlive() {
+            return this.alive;
+        }
     }
+    Chicken.MASS = 1;
+    Chicken.FLAP_FORCE = 4.3;
+    Chicken.FLAP_THRESHOLD = -2;
     Chicken.meshQuad = new ƒ.MeshQuad();
     //private static readonly mtrSolidWhite: ƒ.Material = new ƒ.Material("SolidWhite", ƒ.ShaderUniColor, new ƒ.CoatColored(ƒ.Color.CSS("WHITE")));
     Chicken.mtrSolidWhite = new ƒ.Material("SolidWhite", ƒ.ShaderLit, new ƒ.CoatRemissive());
+    Chicken.mtrSolidRed = new ƒ.Material("SolidRed", ƒ.ShaderLit, new ƒ.CoatColored(ƒ.Color.CSS("RED")));
+    Chicken.materialAlive = new ƒ.ComponentMaterial(Chicken.mtrSolidWhite);
+    Chicken.materialDead = new ƒ.ComponentMaterial(Chicken.mtrSolidRed);
     Chicken.REFLECT_VECTOR_X = ƒ.Vector3.X();
     Chicken.REFLECT_VECTOR_Y = ƒ.Vector3.Y();
     Script.Chicken = Chicken;
@@ -91,25 +122,16 @@ var Script;
     //import ƒAid = FudgeAid;
     ƒ.Debug.info("Main Program Template running!");
     let graph;
-    let chickenContainer; //Holds chickens
     let rng;
     let time;
     document.addEventListener("interactiveViewportStarted", start);
-    //export let enemyrigidbody: ƒ.ComponentRigidbody;
-    //export let NPC: ƒ.Node;
-    //let gravity: number = -9.81;
-    //let ySpeed: number = 0;
-    //let isGrounded: boolean = true;
     // resources
     let chickenSpriteSheet = new ƒ.TextureImage();
-    let pickAlgorithm = [Script.pickByComponent, Script.pickByCamera, Script.pickByRadius];
-    // viewport.canvas.addEventListener("pointerdown", pickAlgorithm[1]);
-    // viewport.getBranch().addEventListener("pointerdown", <ƒ.EventListenerUnified>hitComponent);
     function start(_event) {
         Script.viewport = _event.detail;
         graph = Script.viewport.getBranch();
-        chickenContainer = new ƒ.Node("ChickenContainer");
-        graph.addChild(chickenContainer);
+        Script.chickenContainer = new ƒ.Node("ChickenContainer");
+        graph.addChild(Script.chickenContainer);
         let cmpCamera = Script.viewport.getBranch().getComponent(ƒ.ComponentCamera);
         //console.log("Camera is at (" + cmpCamera.get+ "" + + "|" + + ")")
         Script.viewport.camera = cmpCamera;
@@ -118,6 +140,9 @@ var Script;
         ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
         chickenNodeInit(_event);
+        //Shot Event
+        Script.viewport.canvas.addEventListener("pointerdown", Script.pickByRadius);
+        Script.viewport.getBranch().addEventListener("pointerdown", Script.hitComponent);
         // Load resources
         chickenSpriteSheet.load("./images/chickenSpriteSheet.jpg");
     }
@@ -130,42 +155,36 @@ var Script;
         chickenDeathAnimation = new ƒAid.SpriteSheetAnimation("Death", coat);
         chickenDeathAnimation.generateByGrid(ƒ.Rectangle.GET(255, 266, 447, 355), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
     }
-    //let audioDeath: ƒ.Audio;
-    let audioAmbient;
     function initializeSounds() {
-        //audioDeath = new ƒ.Audio("./sounds/death.wav");
-        //audioJump = new ƒ.Audio("./sounds/jump.wav");
-        //audioAmbient = new ƒ.Audio("./Sounds/music.wav");
+        //audioShot = new ƒ.Audio("./sounds/death.wav");
     }
     //chickenSprite
     //let chickenAvatar: ƒAid.NodeSprite;
-    let cmpAudio;
+    //let cmpAudio: ƒ.ComponentAudio;
     // Spawning
     let minSpawnInterval = 500; // In miliseconds
     let timeSinceLastSpawn = 0;
     //let minChickenSpeed: number = 0.1;
     //let maxChickenSpeed: number = 1.0;
-    let maxChickens = 20;
-    let chickens = 0;
-    //let animationState = "standing";
+    let maxChickens = 3;
+    let playerLives = 3; // Every time a chicken survives, this counts down. When 0, the player loses
+    let gameOverShown = false;
+    let animation = "";
     // Should we spawn a chicken in this frame or not?
     function spawnChicken() {
         let now = time.get();
         // Enough time elapsed to spawn a new chicken?
-        if (now - timeSinceLastSpawn > minSpawnInterval && chickens <= maxChickens) {
-            chickens++;
+        if (now - timeSinceLastSpawn > minSpawnInterval && Script.chickenContainer.getChildren().length < maxChickens) {
             timeSinceLastSpawn = now;
-            //let newChicken = new ƒAid.NodeSprite("chicken");
-            //let newChicken: ƒAid.NodeSprite = constructChicken();
             let spawnPos;
             let speed;
             if (rng.getBoolean()) { // Spawn left
-                spawnPos = new ƒ.Vector2(-15, rng.getRange(-7, 7));
-                speed = 5;
+                spawnPos = new ƒ.Vector2(-5, rng.getRange(-7, 7));
+                speed = 1;
             }
             else { // ...or right
-                spawnPos = new ƒ.Vector2(15, rng.getRange(-7, 7));
-                speed = -5;
+                spawnPos = new ƒ.Vector2(5, rng.getRange(-7, 7));
+                speed = -1;
             }
             //let newChicken : ƒ.Node = new ƒAid.NodeSprite("chicken_Sprite");
             let newChicken = new Script.Chicken("Chicken", spawnPos, new ƒ.Vector2(1, 1), speed);
@@ -178,8 +197,8 @@ var Script;
             //newChicken.framerate = 20;
             //newChicken.setAnimation(chickenDeathAnimation);
             //let spawnPos: ƒ.Vector3 = new ƒ.Vector3(-5, -5, -5);
-            console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y + ") (" + chickens + ")");
-            chickenContainer.addChild(newChicken);
+            console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y + ") (" + Script.chickenContainer.getChildren.length + ")");
+            Script.chickenContainer.addChild(newChicken);
         }
     }
     async function chickenNodeInit(_event) {
@@ -187,8 +206,8 @@ var Script;
         await chickenSpriteSheet.load("./images/chickenSpriteSheet.jpg");
         let coat = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
         initAnimations(coat);
-        Script.chicken = graph.getChildrenByName("Charakter")[0].getChildrenByName("chicken")[0];
-        Script.chicken.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
+        //chicken = graph.getChildrenByName("Charakter")[0].getChildrenByName("chicken")[0];
+        //chicken.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
         initializeSounds();
         //chickenAvatar = new ƒAid.NodeSprite("chicken_Sprite");
         //chickenAvatar.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4()));
@@ -207,31 +226,29 @@ var Script;
         ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
     }
     function update(_event) {
+        ƒ.Physics.simulate();
         spawnChicken();
-        //moveEnemy();
-        //ƒ.AudioManager.default.update();
-        //let timeFrame: number = ƒ.Loop.timeFrameGame / 1000; // time since last frame in seconds
-        //chickenAvatar.mtxLocal.rotation = ƒ.Vector3.Y(animationState.includes("left") ? 180 : 0);
-        //ySpeed += gravity * timeFrame;
-        //  let pos: ƒ.Vector3 = chickenAvatar.mtxLocal.translation;
-        //  pos.y += ySpeed * timeFrame;
-        //
-        //  chicken.mtxLocal.translation = pos;
-        //
-        //  if (pos.y < -2.5) {
-        //    ySpeed = 0;
-        //    pos.y = -2.5;
-        //    isGrounded = true;
-        //  }
-        //  if(isGrounded == true){
-        //  }
-        //  //chickenAvatar.mtxLocal.translation = pos;
-        Script.viewport.draw();
-        chickenContainer.getChildren().forEach(function (element) {
+        // Simulate chickens
+        Script.chickenContainer.getChildren().forEach(function (element) {
             if (element instanceof Script.Chicken) {
-                element.move();
+                if ((element.getPosition().x < -6 || element.getPosition().x > 6) && element.isAlive()) {
+                    Script.chickenContainer.removeChild(element);
+                    playerLives--;
+                }
+                else if (element.getPosition().y < -5 && !element.isAlive()) {
+                    Script.chickenContainer.removeChild(element);
+                }
+                else {
+                    element.move();
+                }
             }
         });
+        // Game over screen
+        if (playerLives <= 0 && !gameOverShown) {
+            gameOverShown = true;
+            alert("Game Over");
+        }
+        Script.viewport.draw();
     }
     //mtxLocal.translation.y = 0 matrix translation an Y
     //mtxLocal.translation = V neuer Vektor
@@ -242,18 +259,18 @@ var Script;
     function pickByComponent(_event) {
         console.log("pickByComponent");
         Reflect.set(_event, "closestDistance", Infinity);
-        Reflect.set(_event, "closestchickens", null);
+        Reflect.set(_event, "closestchicken", null);
         Script.viewport.dispatchPointerEvent(_event);
-        hitchickens(Reflect.get(_event, "closestchickens"));
+        hitchicken(Reflect.get(_event, "closestchicken"));
     }
     Script.pickByComponent = pickByComponent;
     function hitComponent(_event) {
-        let chickens = _event.target;
+        let chicken = _event.target;
         let closestDistance = Reflect.get(_event, "closestDistance");
         let pick = Reflect.get(_event, "pick");
         if (pick.zBuffer < closestDistance) {
             Reflect.set(_event, "closestDistance", pick.zBuffer);
-            Reflect.set(_event, "closestchickens", chickens);
+            Reflect.set(_event, "closestchicken", chicken);
         }
     }
     Script.hitComponent = hitComponent;
@@ -263,12 +280,12 @@ var Script;
         picks.sort((_a, _b) => _a.zBuffer < _b.zBuffer ? -1 : 1);
         console.log(picks[0]);
         if (_event.button == 0) {
-            hitchickens(picks[0]?.node);
+            hitchicken(picks[0]?.node);
         }
         // else if(_event.button == 2){
-        //   let posNewchickens: ƒ.Vector3 = 
+        //   let posNewchicken: ƒ.Vector3 = 
         //   console.log(picks[0].normal.toString());
-        //   addchickens();
+        //   addchicken();
         // }
     }
     Script.pickByCamera = pickByCamera;
@@ -278,50 +295,30 @@ var Script;
         let shortest;
         let found;
         let compare = Math.pow(0.7, 2);
-        for (let chickens of Script.chicken.getChildren()) {
-            if (compare < ray.getDistance(chickens.mtxWorld.translation).magnitudeSquared)
+        for (let chicken of Script.chickenContainer.getChildren()) {
+            if (compare < ray.getDistance(chicken.mtxWorld.translation).magnitudeSquared)
                 continue;
-            let distance = ƒ.Vector3.DIFFERENCE(chickens.mtxWorld.translation, ray.origin).magnitudeSquared;
+            let distance = ƒ.Vector3.DIFFERENCE(chicken.mtxWorld.translation, ray.origin).magnitudeSquared;
             if (shortest == undefined || distance < shortest) {
                 shortest = distance;
-                found = Script.chicken;
+                found = chicken;
             }
         }
-        hitchickens(found);
+        hitchicken(found);
     }
     Script.pickByRadius = pickByRadius;
-    // export function pickByGrid(_event: PointerEvent): void {
-    //   console.log("pickByGrid");
-    //   let ray: ƒ.Ray = viewport.getRayFromClient(new ƒ.Vector2(_event.clientX, _event.clientY));
-    //   let posCheck: ƒ.Vector3 = ray.origin.clone;
-    //   let vctStep: ƒ.Vector3 = ray.direction.clone;
-    //   // find largest component value
-    //   let largest: number = vctStep.get().reduce((_p, _c) => Math.max(_p, Math.abs(_c)));
-    //   // normalize to 1 in that direction
-    //   vctStep.scale(1 / largest);
-    //   for (let i: number = 0; i < 100; i++) {
-    //     posCheck.add(vctStep);
-    //     let posGrid: ƒ.Vector3 = posCheck.map(_value => Math.round(_value));
-    //     console.log(posGrid.toString(), posCheck.toString());
-    //     try {
-    //       //let chickens = grid[posGrid.y][posGrid.z][posGrid.x];
-    //       if (chickens) {
-    //         hitchickens(chickens);
-    //         return;
-    //       }
-    //     } catch (_e) { }
-    //   }
-    // }
-    function hitchickens(_chickens) {
-        if (!_chickens)
+    function hitchicken(chicken) {
+        if (!chicken)
             return;
-        console.log(_chickens.name);
-        _chickens.getParent().removeChild(_chickens);
+        console.log(chicken.name);
+        if (chicken instanceof Script.Chicken) {
+            chicken.hit();
+        }
         Script.viewport.draw();
     }
-    // function addchickens(_pos: ƒ.Vector3){
+    // function addchicken(_pos: ƒ.Vector3){
     //     let txtColor: string = ƒ.Random.default.getElement(["red", "lime", "blue", "yellow"]);
-    //     chickens.addChild(new chickens(_pos, ƒ.Color.CSS(txtColor)));
+    //     chicken.addChild(new chicken(_pos, ƒ.Color.CSS(txtColor)));
     // }
 })(Script || (Script = {}));
 //# sourceMappingURL=Script.js.map

@@ -5,27 +5,14 @@ namespace Script {
 
   let graph: ƒ.Node;
   export let viewport: ƒ.Viewport;
-  let chickenContainer: ƒ.Node; //Holds chickens
-  export let chicken: ƒ.Node; 
+  export let chickenContainer: ƒ.Node; //Holds chickens
   let rng: ƒ.Random;
   let time: ƒ.Time;
-  document.addEventListener("interactiveViewportStarted", <EventListener>start);
-  //export let enemyrigidbody: ƒ.ComponentRigidbody;
-  //export let NPC: ƒ.Node;
- 
-  //let gravity: number = -9.81;
-  //let ySpeed: number = 0;
-  //let isGrounded: boolean = true;
 
-  
+  document.addEventListener("interactiveViewportStarted", <EventListener>start);
+
   // resources
   let chickenSpriteSheet: ƒ.TextureImage = new ƒ.TextureImage();
-  
-  let pickAlgorithm = [pickByComponent, pickByCamera, pickByRadius];
-
-  // viewport.canvas.addEventListener("pointerdown", pickAlgorithm[1]);
-  // viewport.getBranch().addEventListener("pointerdown", <ƒ.EventListenerUnified>hitComponent);
-
 
   function start(_event: CustomEvent): void {
     viewport = _event.detail;
@@ -41,6 +28,10 @@ namespace Script {
     ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     
     chickenNodeInit(_event);
+
+    //Shot Event
+    viewport.canvas.addEventListener("pointerdown", pickByRadius);
+    viewport.getBranch().addEventListener("pointerdown", <ƒ.EventListenerUnified>hitComponent);
 
     // Load resources
     chickenSpriteSheet.load("./images/chickenSpriteSheet.jpg");
@@ -59,54 +50,44 @@ namespace Script {
 
    }
  
-  //let audioDeath: ƒ.Audio;
-  let audioAmbient: ƒ.Audio;
- 
   function initializeSounds(): void {
-    //audioDeath = new ƒ.Audio("./sounds/death.wav");
-    //audioJump = new ƒ.Audio("./sounds/jump.wav");
-    //audioAmbient = new ƒ.Audio("./Sounds/music.wav");
+    //audioShot = new ƒ.Audio("./sounds/death.wav");
   }
  
    //chickenSprite
    //let chickenAvatar: ƒAid.NodeSprite;
-   let cmpAudio: ƒ.ComponentAudio;
+   //let cmpAudio: ƒ.ComponentAudio;
    
 
     // Spawning
-    
     let minSpawnInterval: number = 500; // In miliseconds
     let timeSinceLastSpawn: number = 0;
 
     //let minChickenSpeed: number = 0.1;
     //let maxChickenSpeed: number = 1.0;
 
-    let maxChickens: number = 20;
-    let chickens: number = 0;
-    //let animationState = "standing";
+    let maxChickens: number = 3;
 
+    let playerLives: number = 3; // Every time a chicken survives, this counts down. When 0, the player loses
+    let gameOverShown: boolean = false;
+    let animation: string = "";
 
   // Should we spawn a chicken in this frame or not?
   function spawnChicken(): void {
     let now: number = time.get();
 
     // Enough time elapsed to spawn a new chicken?
-    if(now - timeSinceLastSpawn > minSpawnInterval && chickens <= maxChickens) {
-      chickens++;
+    if(now - timeSinceLastSpawn > minSpawnInterval && chickenContainer.getChildren().length < maxChickens) {
       timeSinceLastSpawn = now;
       
-
-      
-      //let newChicken = new ƒAid.NodeSprite("chicken");
-      //let newChicken: ƒAid.NodeSprite = constructChicken();
       let spawnPos: ƒ.Vector2;
       let speed: number;
       if(rng.getBoolean()) {// Spawn left
-        spawnPos = new ƒ.Vector2(-15, rng.getRange(-7, 7));
-        speed = 5;
+        spawnPos = new ƒ.Vector2(-5, rng.getRange(-7, 7));
+        speed = 1;
       } else { // ...or right
-        spawnPos = new ƒ.Vector2(15, rng.getRange(-7, 7));
-        speed = -5;
+        spawnPos = new ƒ.Vector2(5, rng.getRange(-7, 7));
+        speed = -1;
       }
       //let newChicken : ƒ.Node = new ƒAid.NodeSprite("chicken_Sprite");
       let newChicken : Chicken = new Chicken("Chicken", spawnPos, new ƒ.Vector2(1,1), speed);
@@ -130,7 +111,7 @@ namespace Script {
       //let spawnPos: ƒ.Vector3 = new ƒ.Vector3(-5, -5, -5);
 
 
-      console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y +") (" + chickens + ")");
+      console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y +") (" + chickenContainer.getChildren.length + ")");
 
       chickenContainer.addChild(newChicken);
     }
@@ -144,8 +125,8 @@ namespace Script {
      
      initAnimations(coat);
 
-     chicken = graph.getChildrenByName("Charakter")[0].getChildrenByName("chicken")[0];
-     chicken.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
+     //chicken = graph.getChildrenByName("Charakter")[0].getChildrenByName("chicken")[0];
+     //chicken.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
  
      
      initializeSounds();
@@ -172,33 +153,31 @@ namespace Script {
    }
 
   function update(_event: Event): void {
+    ƒ.Physics.simulate();
     spawnChicken();
-    //moveEnemy();
-    //ƒ.AudioManager.default.update();
-    //let timeFrame: number = ƒ.Loop.timeFrameGame / 1000; // time since last frame in seconds
-
-    //chickenAvatar.mtxLocal.rotation = ƒ.Vector3.Y(animationState.includes("left") ? 180 : 0);
-  //ySpeed += gravity * timeFrame;
-  //  let pos: ƒ.Vector3 = chickenAvatar.mtxLocal.translation;
-  //  pos.y += ySpeed * timeFrame;
-//
-  //  chicken.mtxLocal.translation = pos;
-//
-  //  if (pos.y < -2.5) {
-  //    ySpeed = 0;
-  //    pos.y = -2.5;
-  //    isGrounded = true;
-  //  }
-  //  if(isGrounded == true){
-  //  }
-  //  //chickenAvatar.mtxLocal.translation = pos;
-    viewport.draw();
+    
+    
+    // Simulate chickens
     chickenContainer.getChildren().forEach(function (element){
       if(element instanceof Chicken) {
-        element.move();
+        if((element.getPosition().x < -6 || element.getPosition().x > 6) && element.isAlive()) {
+          chickenContainer.removeChild(element);
+          playerLives--;
+        } else if(element.getPosition().y < -5 && !element.isAlive()) {
+          chickenContainer.removeChild(element);
+        } else {
+          element.move();
+        }
       }
     });
+
+    // Game over screen
+    if(playerLives <= 0 && !gameOverShown) {
+      gameOverShown = true;
+      alert("Game Over");
     }
+    viewport.draw();
+  }
 //mtxLocal.translation.y = 0 matrix translation an Y
 //mtxLocal.translation = V neuer Vektor
 }
