@@ -3,11 +3,12 @@ namespace Script {
   //import ƒAid = FudgeAid;
   ƒ.Debug.info("Main Program Template running!");
 
-  let graph: ƒ.Node;
+  export let graph: ƒ.Node;
   export let viewport: ƒ.Viewport;
   export let chickenContainer: ƒ.Node; //Holds chickens
   let rng: ƒ.Random;
   let time: ƒ.Time;
+  let player: Player;
 
   document.addEventListener("interactiveViewportStarted", <EventListener>start);
 
@@ -29,9 +30,10 @@ namespace Script {
     
     chickenNodeInit(_event);
 
+    player = new Player();
+
     //Shot Event
-    viewport.canvas.addEventListener("pointerdown", pickByRadius);
-    viewport.getBranch().addEventListener("pointerdown", <ƒ.EventListenerUnified>hitComponent);
+    viewport.canvas.addEventListener("pointerdown", (_event) => {player.pickByRadius(_event)});
 
     // Load resources
     chickenSpriteSheet.load("./images/chickenSpriteSheet.jpg");
@@ -50,65 +52,71 @@ namespace Script {
 
    }
  
-  function initializeSounds(): void {
-    //audioShot = new ƒ.Audio("./sounds/death.wav");
-  }
- 
    //chickenSprite
    //let chickenAvatar: ƒAid.NodeSprite;
    //let cmpAudio: ƒ.ComponentAudio;
    
 
     // Spawning
-    let minSpawnInterval: number = 500; // In miliseconds
+    let minSpawnInterval: number = 1500; // In miliseconds
     let timeSinceLastSpawn: number = 0;
-
+    let leftSpawn = -12;
+    let rightSpawn = 12;
     //let minChickenSpeed: number = 0.1;
     //let maxChickenSpeed: number = 1.0;
 
-    let maxChickens: number = 3;
+    let maxChickens: number = 5;
 
     let playerLives: number = 3; // Every time a chicken survives, this counts down. When 0, the player loses
     let gameOverShown: boolean = false;
     let animation: string = "";
-
+    let AVAILABLE_COLLISION_GROUPS: ƒ.COLLISION_GROUP[] = [ƒ.COLLISION_GROUP.GROUP_1, ƒ.COLLISION_GROUP.GROUP_2, ƒ.COLLISION_GROUP.GROUP_3, ƒ.COLLISION_GROUP.GROUP_4, ƒ.COLLISION_GROUP.GROUP_5];
   // Should we spawn a chicken in this frame or not?
   function spawnChicken(): void {
     let now: number = time.get();
-
+    
     // Enough time elapsed to spawn a new chicken?
     if(now - timeSinceLastSpawn > minSpawnInterval && chickenContainer.getChildren().length < maxChickens) {
-      timeSinceLastSpawn = now;
       
+      timeSinceLastSpawn = now;
       let spawnPos: ƒ.Vector2;
       let speed: number;
       if(rng.getBoolean()) {// Spawn left
-        spawnPos = new ƒ.Vector2(-5, rng.getRange(-7, 7));
+        spawnPos = new ƒ.Vector2(leftSpawn, rng.getRange(-5, 7));
         speed = 1;
       } else { // ...or right
-        spawnPos = new ƒ.Vector2(5, rng.getRange(-7, 7));
+        spawnPos = new ƒ.Vector2(rightSpawn, rng.getRange(-5, 7));
         speed = -1;
       }
-      //let newChicken : ƒ.Node = new ƒAid.NodeSprite("chicken_Sprite");
-      let newChicken : Chicken = new Chicken("Chicken", spawnPos, new ƒ.Vector2(1,1), speed);
 
+      //find a free collision group
+      let freeCollisionGroup: ƒ.COLLISION_GROUP = null;
 
+      for(let collGroup of AVAILABLE_COLLISION_GROUPS) {
+        let found: boolean = true;
+        for (let chicken of chickenContainer.getChildren()) {
+          if(chicken instanceof Chicken && chicken.collisionGroup == collGroup) {
+            found = false;
+            break;
+          }
+        }
+        if(found) {
+          freeCollisionGroup = collGroup;
+          break;
+        }
+      }
       
-   
-      // cmpAudio = graph.getComponent(ƒ.ComponentAudio);
-      // cmpAudio.connect(true);
-      // cmpAudio.setAudio(audioAmbient);
-      // cmpAudio.volume = 1;
-
-
-  
+      let newChicken : Chicken;
+      if(freeCollisionGroup) {
+        console.log("Collision group " + freeCollisionGroup.toString() + " is free. Using for new chicken.");
+        newChicken = new Chicken("Chicken", spawnPos, new ƒ.Vector2(1,1), speed, freeCollisionGroup);
+      } else {
+        console.log("NO FREE COLLISION GROUP FOUND. THIS SHOULD NOT HAPPEN. FIX ME.")
+      }
       //newChicken.setAnimation(chickenFlyAnimation);
       //newChicken.setFrameDirection(1);
       //newChicken.framerate = 20;
-
       //newChicken.setAnimation(chickenDeathAnimation);
-      
-      //let spawnPos: ƒ.Vector3 = new ƒ.Vector3(-5, -5, -5);
 
 
       console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y +") (" + chickenContainer.getChildren.length + ")");
@@ -124,16 +132,9 @@ namespace Script {
      let coat: ƒ.CoatTextured = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
      
      initAnimations(coat);
-
-     //chicken = graph.getChildrenByName("Charakter")[0].getChildrenByName("chicken")[0];
-     //chicken.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4));
- 
      
-     initializeSounds();
- 
      //chickenAvatar = new ƒAid.NodeSprite("chicken_Sprite");
      //chickenAvatar.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4()));
- //
      //chickenAvatar.setAnimation(chickenFlyAnimation);
      //chickenAvatar.setFrameDirection(1);
      //chickenAvatar.framerate = 20;
@@ -158,18 +159,20 @@ namespace Script {
     
     
     // Simulate chickens
-    chickenContainer.getChildren().forEach(function (element){
-      if(element instanceof Chicken) {
-        if((element.getPosition().x < -6 || element.getPosition().x > 6) && element.isAlive()) {
-          chickenContainer.removeChild(element);
+    for (let chicken of chickenContainer.getChildren()) {
+      if(chicken instanceof Chicken) {
+        if((chicken.getPosition().x < leftSpawn - 1 || chicken.getPosition().x > rightSpawn + 1) && chicken.alive) {
+          console.log("Chicken made it unharmed. Releasing into the wild... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
+          chickenContainer.removeChild(chicken);
           playerLives--;
-        } else if(element.getPosition().y < -5 && !element.isAlive()) {
-          chickenContainer.removeChild(element);
+        } else if(chicken.getPosition().y < -5 && !chicken.alive) {
+          console.log("Cleaning up dead chicken from the ground... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
+          chickenContainer.removeChild(chicken);
         } else {
-          element.move();
+          chicken.move();
         }
       }
-    });
+    };
 
     // Game over screen
     if(playerLives <= 0 && !gameOverShown) {
