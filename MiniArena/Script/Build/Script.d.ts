@@ -1,22 +1,24 @@
 declare namespace Script {
     import ƒ = FudgeCore;
-    class Chicken extends ƒ.Node {
+    import ƒAid = FudgeAid;
+    class Chicken extends ƒAid.NodeSprite {
         private static readonly MASS;
         private static readonly FLAP_FORCE;
         private static readonly FLAP_THRESHOLD;
-        private static readonly meshQuad;
         private static readonly REFLECT_VECTOR_X;
         private static readonly REFLECT_VECTOR_Y;
-        private readonly mtrSolidWhite;
-        private readonly mtrSolidRed;
-        private readonly materialAlive;
-        private readonly materialDead;
+        private readonly animationstate;
+        private readonly meshQuad;
         private readonly rigidBody;
         rect: ƒ.Rectangle;
-        private direction;
+        private flyDirection;
         private _alive;
         velocity: ƒ.Vector3;
-        constructor(_name: string, _position: ƒ.Vector2, _size: ƒ.Vector2, direction: number, collisionGroup: ƒ.COLLISION_GROUP);
+        private chickenFlyAnimation;
+        private chickenDeathAnimation;
+        private coat;
+        initAnimations(): void;
+        constructor(_name: string, _position: ƒ.Vector2, _size: ƒ.Vector2, flyDirection: number);
         /**
          * move moves the game object and the collision detection reactangle
          */
@@ -44,14 +46,18 @@ declare namespace Script {
     let graph: ƒ.Node;
     let viewport: ƒ.Viewport;
     let chickenContainer: ƒ.Node;
+    let chickenSpriteSheet: ƒ.TextureImage;
 }
 declare namespace Script {
     import ƒ = FudgeCore;
     class Player {
         private cmpAudio;
-        constructor();
+        private _lives;
+        constructor(lives: number);
         pickByRadius(_event: PointerEvent): void;
         hitchicken(chicken: ƒ.Node): void;
         createSoundNode(): void;
+        removeLive(): void;
+        get playerLives(): number;
     }
 }

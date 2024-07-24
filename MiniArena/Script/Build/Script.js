@@ -2,26 +2,41 @@
 var Script;
 (function (Script) {
     var ƒ = FudgeCore;
-    class Chicken extends ƒ.Node {
-        constructor(_name, _position, _size, direction, collisionGroup) {
+    var ƒAid = FudgeAid;
+    class Chicken extends ƒAid.NodeSprite {
+        constructor(_name, _position, _size, flyDirection) {
             super(_name);
+            this.animationstate = "fly";
+            //private readonly mtrSolidWhite: ƒ.Material;
+            //private readonly mtrSolidRed: ƒ.Material;
+            //private readonly materialAlive: ƒ.ComponentMaterial;
+            //private readonly materialDead: ƒ.ComponentMaterial;
+            this.meshQuad = new ƒ.MeshQuad();
             this.rigidBody = new ƒ.ComponentRigidbody(Chicken.MASS);
             this._alive = true;
             this.velocity = ƒ.Vector3.ZERO();
-            this.mtrSolidWhite = new ƒ.Material("SolidWhite", ƒ.ShaderLit, new ƒ.CoatRemissive());
-            this.mtrSolidRed = new ƒ.Material("SolidRed", ƒ.ShaderLit, new ƒ.CoatColored(ƒ.Color.CSS("RED")));
-            this.materialAlive = new ƒ.ComponentMaterial(this.mtrSolidWhite);
-            this.materialDead = new ƒ.ComponentMaterial(this.mtrSolidRed);
-            this.direction = direction;
+            this.coat = new ƒ.CoatTextured(undefined, Script.chickenSpriteSheet);
+            this.flyDirection = flyDirection;
             this.rect = new ƒ.Rectangle(_position.x, _position.y, _size.x, _size.y, ƒ.ORIGIN2D.CENTER);
             this.addComponent(new ƒ.ComponentTransform(ƒ.Matrix4x4.TRANSLATION(_position.toVector3(0))));
-            this.rigidBody.collisionGroup = collisionGroup;
+            this.rigidBody.collisionMask = 0;
             this.rigidBody.effectGravity = 0.1;
-            this.rigidBody.applyLinearImpulse(new ƒ.Vector3(direction, 0, 0));
+            this.rigidBody.applyLinearImpulse(new ƒ.Vector3(flyDirection, 0, 0));
             this.addComponent(this.rigidBody);
-            let cmpQuad = new ƒ.ComponentMesh(Chicken.meshQuad);
-            this.addComponent(cmpQuad);
-            this.addComponent(this.materialAlive);
+            let cmpQuad = new ƒ.ComponentMesh(this.meshQuad);
+            //this.addComponent(cmpQuad);
+            //this.addComponent(this.materialAlive);
+            this.initAnimations();
+        }
+        initAnimations() {
+            this.chickenFlyAnimation = new ƒAid.SpriteSheetAnimation("Fly", this.coat);
+            this.chickenFlyAnimation.generateByGrid(ƒ.Rectangle.GET(0, 0, 120, 111), 3, 120, ƒ.ORIGIN2D.CENTER, ƒ.Vector2.X(120));
+            this.chickenDeathAnimation = new ƒAid.SpriteSheetAnimation("Death", this.coat);
+            this.chickenDeathAnimation.generateByGrid(ƒ.Rectangle.GET(0, 112, 120, 111), 3, 120, ƒ.ORIGIN2D.CENTER, ƒ.Vector2.X(120));
+            this.setAnimation(this.chickenFlyAnimation);
+            this.setFrameDirection(1);
+            this.framerate = 3;
+            this.mtxLocal.rotation = ƒ.Vector3.Y(this.flyDirection == -1 ? 180 : 0);
         }
         /**
          * move moves the game object and the collision detection reactangle
@@ -36,7 +51,7 @@ var Script;
             //console.log("Current velocity: " + this.rigidBody.getVelocity().y);
             if (this.alive && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
                 console.log("FLAP! I am at [" + this.getPosition().x + "|" + this.getPosition().y + "]");
-                this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.direction / 2, Chicken.FLAP_FORCE, 0));
+                this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection / 2, Chicken.FLAP_FORCE, 0));
             }
         }
         translate(_distance) {
@@ -50,8 +65,9 @@ var Script;
         hit() {
             if (this.alive) {
                 this.alive = false;
-                this.removeComponent(this.materialAlive);
-                this.addComponent(this.materialDead);
+                //this.removeComponent(this.materialAlive);
+                //this.addComponent(this.materialDead);
+                this.setAnimation(this.chickenDeathAnimation);
             }
         }
         get alive() {
@@ -67,7 +83,6 @@ var Script;
     Chicken.MASS = 1;
     Chicken.FLAP_FORCE = 4.3;
     Chicken.FLAP_THRESHOLD = -2;
-    Chicken.meshQuad = new ƒ.MeshQuad();
     Chicken.REFLECT_VECTOR_X = ƒ.Vector3.X();
     Chicken.REFLECT_VECTOR_Y = ƒ.Vector3.Y();
     Script.Chicken = Chicken;
@@ -128,7 +143,7 @@ var Script;
     let player;
     document.addEventListener("interactiveViewportStarted", start);
     // resources
-    let chickenSpriteSheet = new ƒ.TextureImage();
+    Script.chickenSpriteSheet = new ƒ.TextureImage();
     function start(_event) {
         Script.viewport = _event.detail;
         Script.graph = Script.viewport.getBranch();
@@ -139,27 +154,14 @@ var Script;
         Script.viewport.camera = cmpCamera;
         rng = new ƒ.Random(0); // TODO non-deterministc seed
         time = new ƒ.Time();
-        ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
-        ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
-        chickenNodeInit(_event);
-        player = new Script.Player();
+        player = new Script.Player(3);
         //Shot Event
         Script.viewport.canvas.addEventListener("pointerdown", (_event) => { player.pickByRadius(_event); });
-        // Load resources
-        chickenSpriteSheet.load("./images/chickenSpriteSheet.jpg");
+        // Load resources 
+        Script.chickenSpriteSheet.load("./images/chickenSpriteSheetEigen.jpg");
+        ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
+        ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     }
-    //Sprite Animations
-    let chickenFlyAnimation;
-    let chickenDeathAnimation;
-    function initAnimations(coat) {
-        chickenFlyAnimation = new ƒAid.SpriteSheetAnimation("Fly", coat);
-        chickenFlyAnimation.generateByGrid(ƒ.Rectangle.GET(0, 0, 366, 103), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
-        chickenDeathAnimation = new ƒAid.SpriteSheetAnimation("Death", coat);
-        chickenDeathAnimation.generateByGrid(ƒ.Rectangle.GET(255, 266, 447, 355), 3, 50, ƒ.ORIGIN2D.BOTTOMCENTER, ƒ.Vector2.X(40));
-    }
-    //chickenSprite
-    //let chickenAvatar: ƒAid.NodeSprite;
-    //let cmpAudio: ƒ.ComponentAudio;
     // Spawning
     let minSpawnInterval = 1500; // In miliseconds
     let timeSinceLastSpawn = 0;
@@ -168,7 +170,6 @@ var Script;
     //let minChickenSpeed: number = 0.1;
     //let maxChickenSpeed: number = 1.0;
     let maxChickens = 5;
-    let playerLives = 3; // Every time a chicken survives, this counts down. When 0, the player loses
     let gameOverShown = false;
     let animation = "";
     let AVAILABLE_COLLISION_GROUPS = [ƒ.COLLISION_GROUP.GROUP_1, ƒ.COLLISION_GROUP.GROUP_2, ƒ.COLLISION_GROUP.GROUP_3, ƒ.COLLISION_GROUP.GROUP_4, ƒ.COLLISION_GROUP.GROUP_5];
@@ -180,7 +181,7 @@ var Script;
             timeSinceLastSpawn = now;
             let spawnPos;
             let speed;
-            if (rng.getBoolean()) { // Spawn left
+            if (rng.getBoolean()) { // Spawn left...
                 spawnPos = new ƒ.Vector2(leftSpawn, rng.getRange(-5, 7));
                 speed = 1;
             }
@@ -188,57 +189,18 @@ var Script;
                 spawnPos = new ƒ.Vector2(rightSpawn, rng.getRange(-5, 7));
                 speed = -1;
             }
-            //find a free collision group
-            let freeCollisionGroup = null;
-            for (let collGroup of AVAILABLE_COLLISION_GROUPS) {
-                let found = true;
-                for (let chicken of Script.chickenContainer.getChildren()) {
-                    if (chicken instanceof Script.Chicken && chicken.collisionGroup == collGroup) {
-                        found = false;
-                        break;
-                    }
-                }
-                if (found) {
-                    freeCollisionGroup = collGroup;
-                    break;
-                }
-            }
-            let newChicken;
-            if (freeCollisionGroup) {
-                console.log("Collision group " + freeCollisionGroup.toString() + " is free. Using for new chicken.");
-                newChicken = new Script.Chicken("Chicken", spawnPos, new ƒ.Vector2(1, 1), speed, freeCollisionGroup);
-            }
-            else {
-                console.log("NO FREE COLLISION GROUP FOUND. THIS SHOULD NOT HAPPEN. FIX ME.");
-            }
-            //newChicken.setAnimation(chickenFlyAnimation);
-            //newChicken.setFrameDirection(1);
-            //newChicken.framerate = 20;
-            //newChicken.setAnimation(chickenDeathAnimation);
+            let newChicken = new Script.Chicken("Chicken", spawnPos, new ƒ.Vector2(1, 1), speed);
             console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y + ") (" + Script.chickenContainer.getChildren.length + ")");
             Script.chickenContainer.addChild(newChicken);
         }
     }
-    async function chickenNodeInit(_event) {
-        let chickenSpriteSheet = new ƒ.TextureImage();
-        await chickenSpriteSheet.load("./images/chickenSpriteSheet.jpg");
-        let coat = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
-        initAnimations(coat);
-        //chickenAvatar = new ƒAid.NodeSprite("chicken_Sprite");
-        //chickenAvatar.addComponent(new ƒ.ComponentTransform(new ƒ.Matrix4x4()));
-        //chickenAvatar.setAnimation(chickenFlyAnimation);
-        //chickenAvatar.setFrameDirection(1);
-        //chickenAvatar.framerate = 20;
-        //chickenAvatar.setAnimation(chickenDeathAnimation);
-        //chickenAvatar.mtxLocal.translateY(0);
-        //chickenAvatar.mtxLocal.translateZ(2);
-        //chickenAvatar.mtxLocal.scaleX(1.5);
-        //chickenAvatar.mtxLocal.scaleY(2);
-        Script.graph = Script.viewport.getBranch();
-        //graph.addChild(chickenAvatar);
-        ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
-        ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
-    }
+    //async function chickenNodeInit(_event: Event): Promise<void> {
+    //let coat: ƒ.CoatTextured = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
+    //graph = viewport.getBranch();
+    //graph.addChild(chickenAvatar);
+    //ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
+    //ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
+    //}
     function update(_event) {
         ƒ.Physics.simulate();
         spawnChicken();
@@ -248,7 +210,7 @@ var Script;
                 if ((chicken.getPosition().x < leftSpawn - 1 || chicken.getPosition().x > rightSpawn + 1) && chicken.alive) {
                     console.log("Chicken made it unharmed. Releasing into the wild... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
                     Script.chickenContainer.removeChild(chicken);
-                    playerLives--;
+                    player.removeLive();
                 }
                 else if (chicken.getPosition().y < -5 && !chicken.alive) {
                     console.log("Cleaning up dead chicken from the ground... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
@@ -261,7 +223,7 @@ var Script;
         }
         ;
         // Game over screen
-        if (playerLives <= 0 && !gameOverShown) {
+        if (player.playerLives <= 0 && !gameOverShown) {
             gameOverShown = true;
             alert("Game Over");
         }
@@ -274,8 +236,9 @@ var Script;
 (function (Script) {
     var ƒ = FudgeCore;
     class Player {
-        constructor() {
+        constructor(lives) {
             this.createSoundNode();
+            this._lives = lives;
         }
         pickByRadius(_event) {
             console.log("Picking by radius...");
@@ -311,6 +274,12 @@ var Script;
             this.cmpAudio = new ƒ.ComponentAudio(audio, false, false);
             // Erstelle einen Knoten, um die Audio-Komponente zu hosten, und füge die Audio-Komponente hinzu
             Script.graph.addComponent(this.cmpAudio);
+        }
+        removeLive() {
+            this._lives--;
+        }
+        get playerLives() {
+            return this._lives;
         }
     }
     Script.Player = Player;

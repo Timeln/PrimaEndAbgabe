@@ -1,11 +1,12 @@
 namespace Script {
     import ƒ = FudgeCore;
 
-    export class Player{
+    export class Player {
       private cmpAudio: ƒ.ComponentAudio;
-      
-      public constructor() {
+      private _lives: number; // Every time a chicken survives, this counts down. When 0, the player loses
+      public constructor(lives: number) {
         this.createSoundNode();
+        this._lives = lives;
       }
 
       public pickByRadius(_event: PointerEvent): void {
@@ -53,5 +54,13 @@ namespace Script {
         graph.addComponent(this.cmpAudio);
 
         }
+
+        public removeLive(): void {
+          this._lives--;
+        }
+        public get playerLives(): number {
+          return this._lives;
+        }
+
       }      
     }
