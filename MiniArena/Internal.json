@@ -18,6 +18,17 @@
       }
     }
   },
+  "TextureImage|2024-07-23T08:35:05.478Z|59752": {
+    "ƒ.TextureImage": {
+      "url": "images\\Cornfield.png",
+      "type": "TextureImage",
+      "Texture": {
+        "idResource": "TextureImage|2024-07-23T08:35:05.478Z|59752",
+        "name": "images\\Cornfield.png",
+        "mipmap": "CRISP"
+      }
+    }
+  },
   "TextureImage|2024-02-21T16:57:45.465Z|57483": {
     "ƒ.TextureImage": {
       "url": "images\\backgroundMM.png",
@@ -65,6 +76,14 @@
       "url": "Sounds\\music.wav",
       "idResource": "Audio|2023-04-19T19:37:58.758Z|28543",
       "name": "Sounds\\music.wav",
+      "type": "Audio"
+    }
+  },
+  "Audio|2024-07-23T08:36:16.446Z|24846": {
+    "ƒ.Audio": {
+      "url": "Sounds\\merry-farm-127398.mp3",
+      "idResource": "Audio|2024-07-23T08:36:16.446Z|24846",
+      "name": "Sounds\\merry-farm-127398.mp3",
       "type": "Audio"
     }
   },
@@ -154,6 +173,25 @@
                           "idMaterial": "Material|2023-03-22T14:33:18.438Z|17402"
                         }
                       }
+                    ],
+                    "ComponentLight": [
+                      {
+                        "ƒ.ComponentLight": {
+                          "pivot": {
+                            "translation": "[0, 0, 0]",
+                            "rotation": "[0, 0, 0]",
+                            "scaling": "[1, 1, 1]"
+                          },
+                          "light": {
+                            "ƒ.LightAmbient": {
+                              "color": "[1, 0, 0.8823529411764706, 1]"
+                            }
+                          },
+                          "Component": {
+                            "active": true
+                          }
+                        }
+                      }
                     ]
                   },
                   "children": []
@@ -194,6 +232,34 @@
               }
             ]
           }
+        },
+        {
+          "ƒ.Node": {
+            "name": "Light",
+            "active": true,
+            "components": {
+              "ComponentLight": [
+                {
+                  "ƒ.ComponentLight": {
+                    "pivot": {
+                      "translation": "[0, 0, 0]",
+                      "rotation": "[0, 0, 0]",
+                      "scaling": "[1, 1, 1]"
+                    },
+                    "light": {
+                      "ƒ.LightAmbient": {
+                        "color": "[0.9333333333333333, 0, 1, 1]"
+                      }
+                    },
+                    "Component": {
+                      "active": true
+                    }
+                  }
+                }
+              ]
+            },
+            "children": []
+          }
         }
       ],
       "idResource": "Graph|2023-03-22T14:15:18.647Z|32700",
@@ -210,25 +276,6 @@
           "color": "[1, 1, 1, 1]"
         }
       }
-    }
-  },
-  "TextureImage|2024-07-23T08:35:05.478Z|59752": {
-    "ƒ.TextureImage": {
-      "url": "images\\Cornfield.png",
-      "type": "TextureImage",
-      "Texture": {
-        "idResource": "TextureImage|2024-07-23T08:35:05.478Z|59752",
-        "name": "images\\Cornfield.png",
-        "mipmap": "CRISP"
-      }
-    }
-  },
-  "Audio|2024-07-23T08:36:16.446Z|24846": {
-    "ƒ.Audio": {
-      "url": "Sounds\\merry-farm-127398.mp3",
-      "idResource": "Audio|2024-07-23T08:36:16.446Z|24846",
-      "name": "Sounds\\merry-farm-127398.mp3",
-      "type": "Audio"
     }
   }
 }

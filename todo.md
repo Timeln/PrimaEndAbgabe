@@ -4,14 +4,14 @@
 [X]  4   Scriptcomponents
 [X]  5   Extend
 [X]  6   Sound
-[]  7   VUI
+[x]  7   VUI
 [X]  8   Event-System
 []  9   External Data
-[-]  A   Light
+[]  A   Light
 [X]  B   Physics
 [-]  C   Net
 []  D   State Machines
-[]  E   Animation
+[x]  E   Animation
 
 --- Overal Private
 
@@ -22,3 +22,4 @@
 [X] Chicken still collide (-> set the collision mask=0, not group)
 [] Axis arrows
 [?] Move playerLives from Main to Player
+[] Chicken sprite transparency

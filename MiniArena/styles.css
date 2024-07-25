@@ -14,3 +14,22 @@ canvas.fullscreen {
   width: 100vw; 
   height: 100vh; 
 }
+
+div#hud {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  color: white;
+  font-size: large;
+}
+
+input[type="number"] {
+  appearance: textfield;
+
+  font-size: 5em;
+  border: none;
+  background-color: rgba(0, 255, 255, 0);
+  color: rgb(255, 0, 0);
+  text-shadow: black 5px 5px;
+  width:4em;
+}

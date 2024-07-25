@@ -4,7 +4,7 @@ var Script;
     var ƒ = FudgeCore;
     var ƒAid = FudgeAid;
     class Chicken extends ƒAid.NodeSprite {
-        constructor(_name, _position, _size, flyDirection) {
+        constructor(_name, _position, _size, flyDirection, verticalFlapForce) {
             super(_name);
             this.animationstate = "fly";
             //private readonly mtrSolidWhite: ƒ.Material;
@@ -17,6 +17,7 @@ var Script;
             this.velocity = ƒ.Vector3.ZERO();
             this.coat = new ƒ.CoatTextured(undefined, Script.chickenSpriteSheet);
             this.flyDirection = flyDirection;
+            this.flapForceVertical = verticalFlapForce;
             this.rect = new ƒ.Rectangle(_position.x, _position.y, _size.x, _size.y, ƒ.ORIGIN2D.CENTER);
             this.addComponent(new ƒ.ComponentTransform(ƒ.Matrix4x4.TRANSLATION(_position.toVector3(0))));
             this.rigidBody.collisionMask = 0;
@@ -36,7 +37,7 @@ var Script;
             this.setAnimation(this.chickenFlyAnimation);
             this.setFrameDirection(1);
             this.framerate = 3;
-            this.mtxLocal.rotation = ƒ.Vector3.Y(this.flyDirection == -1 ? 180 : 0);
+            this.mtxLocal.rotation = ƒ.Vector3.Y(this.flyDirection < 0 ? 180 : 0);
         }
         /**
          * move moves the game object and the collision detection reactangle
@@ -51,7 +52,7 @@ var Script;
             //console.log("Current velocity: " + this.rigidBody.getVelocity().y);
             if (this.alive && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
                 console.log("FLAP! I am at [" + this.getPosition().x + "|" + this.getPosition().y + "]");
-                this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection / 2, Chicken.FLAP_FORCE, 0));
+                this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection, this.flapForceVertical, 0));
             }
         }
         translate(_distance) {
@@ -81,7 +82,6 @@ var Script;
         }
     }
     Chicken.MASS = 1;
-    Chicken.FLAP_FORCE = 4.3;
     Chicken.FLAP_THRESHOLD = -2;
     Chicken.REFLECT_VECTOR_X = ƒ.Vector3.X();
     Chicken.REFLECT_VECTOR_Y = ƒ.Vector3.Y();
@@ -141,10 +141,14 @@ var Script;
     let rng;
     let time;
     let player;
+    let config;
     document.addEventListener("interactiveViewportStarted", start);
     // resources
     Script.chickenSpriteSheet = new ƒ.TextureImage();
-    function start(_event) {
+    async function start(_event) {
+        let response = await fetch("config.json");
+        config = await response.json();
+        console.log(config);
         Script.viewport = _event.detail;
         Script.graph = Script.viewport.getBranch();
         Script.chickenContainer = new ƒ.Node("ChickenContainer");
@@ -159,6 +163,7 @@ var Script;
         Script.viewport.canvas.addEventListener("pointerdown", (_event) => { player.pickByRadius(_event); });
         // Load resources 
         Script.chickenSpriteSheet.load("./images/chickenSpriteSheetEigen.jpg");
+        Script.Hud.start(player);
         ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     }
@@ -189,7 +194,7 @@ var Script;
                 spawnPos = new ƒ.Vector2(rightSpawn, rng.getRange(-5, 7));
                 speed = -1;
             }
-            let newChicken = new Script.Chicken("Chicken", spawnPos, new ƒ.Vector2(1, 1), speed);
+            let newChicken = new Script.Chicken("Chicken", spawnPos, new ƒ.Vector2(1, 1), speed * config.flapForceHorizontal, config.flapForceVertical);
             console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y + ") (" + Script.chickenContainer.getChildren.length + ")");
             Script.chickenContainer.addChild(newChicken);
         }
@@ -235,11 +240,21 @@ var Script;
 var Script;
 (function (Script) {
     var ƒ = FudgeCore;
-    class Player {
+    let PLAYER_STATE;
+    (function (PLAYER_STATE) {
+        PLAYER_STATE[PLAYER_STATE["READY_TO_SHOOT"] = 0] = "READY_TO_SHOOT";
+        PLAYER_STATE[PLAYER_STATE["RELOAD"] = 1] = "RELOAD";
+        PLAYER_STATE[PLAYER_STATE["GAME_OVER"] = 2] = "GAME_OVER";
+    })(PLAYER_STATE = Script.PLAYER_STATE || (Script.PLAYER_STATE = {}));
+    class Player extends ƒ.Mutable {
         constructor(lives) {
+            super();
+            this.score = 0;
+            this.ammo = 5;
             this.createSoundNode();
-            this._lives = lives;
+            this.health = lives;
         }
+        reduceMutator(_mutator) { }
         pickByRadius(_event) {
             console.log("Picking by radius...");
             let ray = Script.viewport.getRayFromClient(new ƒ.Vector2(_event.clientX, _event.clientY));
@@ -265,6 +280,8 @@ var Script;
             console.log(chicken.name);
             if (chicken instanceof Script.Chicken) {
                 chicken.hit();
+                this.score += 5;
+                console.log(this.score);
             }
         }
         createSoundNode() {
@@ -275,13 +292,78 @@ var Script;
             // Erstelle einen Knoten, um die Audio-Komponente zu hosten, und füge die Audio-Komponente hinzu
             Script.graph.addComponent(this.cmpAudio);
         }
+        createReloadSoundNode() {
+            // Lade die Sounddatei
+            let audio = new ƒ.Audio("./Sounds/reload.mp3");
+            // Erstelle die Audio-Komponente und füge die geladene Sounddatei hinzu
+            this.cmpAudio = new ƒ.ComponentAudio(audio, false, false);
+            // Erstelle einen Knoten, um die Audio-Komponente zu hosten, und füge die Audio-Komponente hinzu
+            Script.graph.addComponent(this.cmpAudio);
+        }
         removeLive() {
-            this._lives--;
+            this.health--;
         }
         get playerLives() {
-            return this._lives;
+            return this.health;
         }
     }
     Script.Player = Player;
+})(Script || (Script = {}));
+var Script;
+(function (Script) {
+    var ƒaid = FudgeAid;
+    class ComponentStateMachineEnemy extends ƒaid.ComponentStateMachine {
+        constructor() {
+            super();
+            this.instructions = ComponentStateMachineEnemy.instructions;
+        }
+        static setupStateMachine() {
+            let setup = new ƒaid.StateMachineInstructions();
+            // Do this when the player wants to shoot
+            setup.setAction(Script.PLAYER_STATE.READY_TO_SHOOT, (_machine) => {
+                let player = _machine.node;
+                if (player instanceof Script.Player) {
+                    if (player.ammo > 0) {
+                        // TODO what to do here? Can't pass PointerEvent?
+                        //player.pickByRadius();
+                    }
+                    else {
+                        _machine.transit(Script.PLAYER_STATE.RELOAD);
+                    }
+                }
+            });
+            // TODO transit between RELOAD and READO_TO_SHOOT and GAME_OVER
+            //setup.setAction(JOB.PATROL, (_machine) => {
+            //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
+            //  // console.log(container);
+            //  if (container.mtxLocal.translation.equals(container.posTarget, 0.1))
+            //    _machine.transit(JOB.IDLE);
+            //  container.move();
+            //});
+            //
+            //setup.setTransition(JOB.PATROL, JOB.IDLE, (_machine) => {
+            //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
+            //  ƒ.Time.game.setTimer(3000, 1, (_event: ƒ.EventTimer) => {
+            //    container.chooseTargetPosition();
+            //    _machine.transit(JOB.PATROL);
+            //  })
+            //});
+            return setup;
+        }
+    }
+    ComponentStateMachineEnemy.instructions = ComponentStateMachineEnemy.setupStateMachine();
+    Script.ComponentStateMachineEnemy = ComponentStateMachineEnemy;
+})(Script || (Script = {}));
+var Script;
+(function (Script) {
+    var ƒui = FudgeUserInterface;
+    class Hud {
+        static start(player) {
+            let domHud = document.querySelector("div#hud");
+            Hud.controller = new ƒui.Controller(player, domHud);
+            Hud.controller.updateUserInterface();
+        }
+    }
+    Script.Hud = Hud;
 })(Script || (Script = {}));
 //# sourceMappingURL=Script.js.map

@@ -9,15 +9,18 @@ namespace Script {
   let rng: ƒ.Random;
   let time: ƒ.Time;
   let player: Player;
-
-  document.addEventListener("interactiveViewportStarted", <EventListener>start);
+  let config: {[key: string]: number};
+  document.addEventListener("interactiveViewportStarted", start);
 
   // resources
   export let chickenSpriteSheet: ƒ.TextureImage = new ƒ.TextureImage();
 
-  function start(_event: CustomEvent): void {
-    
-    viewport = _event.detail;
+  async function start(_event: Event): Promise<void> {
+    let response: Response = await fetch("config.json");
+    config = await response.json();
+    console.log(config);
+
+    viewport = (<CustomEvent>_event).detail;
     graph = viewport.getBranch();
 
     chickenContainer = new ƒ.Node("ChickenContainer");
@@ -39,7 +42,7 @@ namespace Script {
     // Load resources 
    
     chickenSpriteSheet.load("./images/chickenSpriteSheetEigen.jpg");
-
+      Hud.start(player);
 
     ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
     ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
@@ -76,7 +79,7 @@ namespace Script {
         speed = -1;
       }
       
-      let newChicken : Chicken = new Chicken("Chicken", spawnPos, new ƒ.Vector2(1,1), speed);
+      let newChicken : Chicken = new Chicken("Chicken", spawnPos, new ƒ.Vector2(1,1), speed * config.flapForceHorizontal, config.flapForceVertical);
 
       console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y +") (" + chickenContainer.getChildren.length + ")");
 

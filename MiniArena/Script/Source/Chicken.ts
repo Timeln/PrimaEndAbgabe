@@ -4,7 +4,6 @@ namespace Script {
 
   export class Chicken extends ƒAid.NodeSprite {
     private static readonly MASS: number = 1;
-    private static readonly FLAP_FORCE: number = 4.3;
     private static readonly FLAP_THRESHOLD: number = -2;
     
     private static readonly REFLECT_VECTOR_X: ƒ.Vector3 = ƒ.Vector3.X();
@@ -22,6 +21,7 @@ namespace Script {
 
     public rect: ƒ.Rectangle;
     private flyDirection: number;
+    private flapForceVertical: number;
     private _alive: boolean = true;
     public velocity: ƒ.Vector3 = ƒ.Vector3.ZERO();
 
@@ -40,12 +40,13 @@ namespace Script {
       this.setFrameDirection(1);
       this.framerate = 3;
 
-      this.mtxLocal.rotation = ƒ.Vector3.Y(this.flyDirection == -1 ? 180 : 0);
+      this.mtxLocal.rotation = ƒ.Vector3.Y(this.flyDirection < 0 ? 180 : 0);
   }
-    public constructor(_name: string, _position: ƒ.Vector2, _size: ƒ.Vector2, flyDirection: number) {
+    public constructor(_name: string, _position: ƒ.Vector2, _size: ƒ.Vector2, flyDirection: number, verticalFlapForce: number) {
       super(_name);
       
       this.flyDirection = flyDirection;
+      this.flapForceVertical = verticalFlapForce;
       this.rect = new ƒ.Rectangle(_position.x, _position.y, _size.x, _size.y, ƒ.ORIGIN2D.CENTER);
       
       this.addComponent(new ƒ.ComponentTransform(ƒ.Matrix4x4.TRANSLATION(_position.toVector3(0))));
@@ -77,7 +78,7 @@ namespace Script {
       //console.log("Current velocity: " + this.rigidBody.getVelocity().y);
       if (this.alive && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
         console.log("FLAP! I am at [" + this.getPosition().x + "|" + this.getPosition().y + "]");
-        this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection / 2, Chicken.FLAP_FORCE, 0));
+        this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection, this.flapForceVertical, 0));
       }
     }
 
