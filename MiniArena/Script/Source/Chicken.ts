@@ -2,6 +2,10 @@ namespace Script {
   import ƒ = FudgeCore;
   import ƒAid = FudgeAid;
 
+  export enum CHICKEN_STATE {
+    ALIVE, DEAD
+  }
+
   export class Chicken extends ƒAid.NodeSprite {
     private static readonly MASS: number = 1;
     private static readonly FLAP_THRESHOLD: number = -2;
@@ -22,7 +26,7 @@ namespace Script {
     public rect: ƒ.Rectangle;
     private flyDirection: number;
     private flapForceVertical: number;
-    private _alive: boolean = true;
+    //private _alive: boolean = true;
     public velocity: ƒ.Vector3 = ƒ.Vector3.ZERO();
 
     //Sprite Animations
@@ -30,6 +34,7 @@ namespace Script {
     private chickenDeathAnimation: ƒAid.SpriteSheetAnimation;
 
     private coat: ƒ.CoatTextured = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
+    private stateMachine: ComponentStateMachineChicken = new ComponentStateMachineChicken();
   public initAnimations(): void {
      this.chickenFlyAnimation = new ƒAid.SpriteSheetAnimation("Fly", this.coat);
      this.chickenFlyAnimation.generateByGrid(ƒ.Rectangle.GET(0, 0 , 120, 111), 3, 120, ƒ.ORIGIN2D.CENTER, ƒ.Vector2.X(120));
@@ -58,25 +63,31 @@ namespace Script {
       //this.addComponent(cmpQuad);
 
       //this.addComponent(this.materialAlive);
+      this.addComponent(this.stateMachine);
+      this.stateMachine.stateCurrent = CHICKEN_STATE.ALIVE;
       this.initAnimations();
     }
 
 
+    public update(): void {
+      this.stateMachine.act();
+    }
+
     /**
      * move moves the game object and the collision detection reactangle
      */
-    public move(): void {
-      //let frameTime: number = ƒ.Loop.timeFrameGame / 1000;
-
-      //let force: ƒ.Vector3 = ƒ.Vector3.SCALE(new ƒ.Vector3(0, 9.81, 0), frameTime);
-
-      this.flap();
-      //this.translate(distance);
-    }
+    //public move(): void {
+    //  //let frameTime: number = ƒ.Loop.timeFrameGame / 1000;
+//
+    //  //let force: ƒ.Vector3 = ƒ.Vector3.SCALE(new ƒ.Vector3(0, 9.81, 0), frameTime);
+//
+    //  this.flap();
+    //  //this.translate(distance);
+    //}
 
     public flap(): void {
       //console.log("Current velocity: " + this.rigidBody.getVelocity().y);
-      if (this.alive && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
+      if (this.currentState == CHICKEN_STATE.ALIVE && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
         console.log("FLAP! I am at [" + this.getPosition().x + "|" + this.getPosition().y + "]");
         this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection, this.flapForceVertical, 0));
       }
@@ -92,23 +103,12 @@ namespace Script {
     }
 
     public hit() {
-      if (this.alive) {
-        this.alive = false;
-        //this.removeComponent(this.materialAlive);
-        //this.addComponent(this.materialDead);
-        this.setAnimation(this.chickenDeathAnimation);
-      }
-    }
-    public get alive(): boolean {
-      return this._alive;
-    }
-    public set alive(_alive: boolean) {
-      this._alive = _alive;
+      this.stateMachine.transit(CHICKEN_STATE.DEAD);
+      this.setAnimation(this.chickenDeathAnimation);
     }
 
-    public get collisionGroup(): ƒ.COLLISION_GROUP {
-      return this.rigidBody.collisionGroup;
+    public get currentState(): CHICKEN_STATE {
+      return this.stateMachine.stateCurrent;
     }
   }
-
 }

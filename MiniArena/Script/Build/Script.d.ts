@@ -1,6 +1,10 @@
 declare namespace Script {
     import ƒ = FudgeCore;
     import ƒAid = FudgeAid;
+    enum CHICKEN_STATE {
+        ALIVE = 0,
+        DEAD = 1
+    }
     class Chicken extends ƒAid.NodeSprite {
         private static readonly MASS;
         private static readonly FLAP_THRESHOLD;
@@ -12,24 +16,30 @@ declare namespace Script {
         rect: ƒ.Rectangle;
         private flyDirection;
         private flapForceVertical;
-        private _alive;
         velocity: ƒ.Vector3;
         private chickenFlyAnimation;
         private chickenDeathAnimation;
         private coat;
+        private stateMachine;
         initAnimations(): void;
         constructor(_name: string, _position: ƒ.Vector2, _size: ƒ.Vector2, flyDirection: number, verticalFlapForce: number);
+        update(): void;
         /**
          * move moves the game object and the collision detection reactangle
          */
-        move(): void;
         flap(): void;
         translate(_distance: ƒ.Vector3): void;
         getPosition(): ƒ.Vector3;
         hit(): void;
-        get alive(): boolean;
-        set alive(_alive: boolean);
-        get collisionGroup(): ƒ.COLLISION_GROUP;
+        get currentState(): CHICKEN_STATE;
+    }
+}
+declare namespace Script {
+    import ƒaid = FudgeAid;
+    class ComponentStateMachineChicken extends ƒaid.ComponentStateMachine<CHICKEN_STATE> {
+        private static instructions;
+        constructor();
+        private static setupStateMachine;
     }
 }
 declare namespace Script {
@@ -50,11 +60,6 @@ declare namespace Script {
 }
 declare namespace Script {
     import ƒ = FudgeCore;
-    enum PLAYER_STATE {
-        READY_TO_SHOOT = 0,
-        RELOAD = 1,
-        GAME_OVER = 2
-    }
     class Player extends ƒ.Mutable {
         private cmpAudio;
         health: number;
@@ -71,16 +76,9 @@ declare namespace Script {
     }
 }
 declare namespace Script {
-    import ƒaid = FudgeAid;
-    class ComponentStateMachineEnemy extends ƒaid.ComponentStateMachine<PLAYER_STATE> {
-        private static instructions;
-        constructor();
-        private static setupStateMachine;
-    }
-}
-declare namespace Script {
     class Hud {
         private static controller;
         static start(player: Player): void;
+        static forceUpdate(): void;
     }
 }

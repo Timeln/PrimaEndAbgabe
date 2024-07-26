@@ -1,9 +1,7 @@
 namespace Script {
     import ƒ = FudgeCore;
 
-    export enum PLAYER_STATE {
-      READY_TO_SHOOT, RELOAD, GAME_OVER
-    }
+
     
     export class Player extends ƒ.Mutable{
       private cmpAudio: ƒ.ComponentAudio;
@@ -26,13 +24,14 @@ namespace Script {
   
         this.cmpAudio.play(true);
         console.log("schuss");
-
+        this.ammo--;
+        
         for (let chicken of chickenContainer.getChildren()) {
           if (compare < ray.getDistance(chicken.mtxWorld.translation).magnitudeSquared)
             continue;
           let distance: number = ƒ.Vector3.DIFFERENCE(chicken.mtxWorld.translation, ray.origin).magnitudeSquared;
           if (shortest == undefined || distance < shortest) {
-            shortest = distance
+            shortest = distance;
             found = chicken;
           }
         }

@@ -3,6 +3,11 @@ var Script;
 (function (Script) {
     var ƒ = FudgeCore;
     var ƒAid = FudgeAid;
+    let CHICKEN_STATE;
+    (function (CHICKEN_STATE) {
+        CHICKEN_STATE[CHICKEN_STATE["ALIVE"] = 0] = "ALIVE";
+        CHICKEN_STATE[CHICKEN_STATE["DEAD"] = 1] = "DEAD";
+    })(CHICKEN_STATE = Script.CHICKEN_STATE || (Script.CHICKEN_STATE = {}));
     class Chicken extends ƒAid.NodeSprite {
         constructor(_name, _position, _size, flyDirection, verticalFlapForce) {
             super(_name);
@@ -13,9 +18,10 @@ var Script;
             //private readonly materialDead: ƒ.ComponentMaterial;
             this.meshQuad = new ƒ.MeshQuad();
             this.rigidBody = new ƒ.ComponentRigidbody(Chicken.MASS);
-            this._alive = true;
+            //private _alive: boolean = true;
             this.velocity = ƒ.Vector3.ZERO();
             this.coat = new ƒ.CoatTextured(undefined, Script.chickenSpriteSheet);
+            this.stateMachine = new Script.ComponentStateMachineChicken();
             this.flyDirection = flyDirection;
             this.flapForceVertical = verticalFlapForce;
             this.rect = new ƒ.Rectangle(_position.x, _position.y, _size.x, _size.y, ƒ.ORIGIN2D.CENTER);
@@ -27,6 +33,8 @@ var Script;
             let cmpQuad = new ƒ.ComponentMesh(this.meshQuad);
             //this.addComponent(cmpQuad);
             //this.addComponent(this.materialAlive);
+            this.addComponent(this.stateMachine);
+            this.stateMachine.stateCurrent = CHICKEN_STATE.ALIVE;
             this.initAnimations();
         }
         initAnimations() {
@@ -39,18 +47,23 @@ var Script;
             this.framerate = 3;
             this.mtxLocal.rotation = ƒ.Vector3.Y(this.flyDirection < 0 ? 180 : 0);
         }
+        update() {
+            this.stateMachine.act();
+        }
         /**
          * move moves the game object and the collision detection reactangle
          */
-        move() {
-            //let frameTime: number = ƒ.Loop.timeFrameGame / 1000;
-            //let force: ƒ.Vector3 = ƒ.Vector3.SCALE(new ƒ.Vector3(0, 9.81, 0), frameTime);
-            this.flap();
-            //this.translate(distance);
-        }
+        //public move(): void {
+        //  //let frameTime: number = ƒ.Loop.timeFrameGame / 1000;
+        //
+        //  //let force: ƒ.Vector3 = ƒ.Vector3.SCALE(new ƒ.Vector3(0, 9.81, 0), frameTime);
+        //
+        //  this.flap();
+        //  //this.translate(distance);
+        //}
         flap() {
             //console.log("Current velocity: " + this.rigidBody.getVelocity().y);
-            if (this.alive && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
+            if (this.currentState == CHICKEN_STATE.ALIVE && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
                 console.log("FLAP! I am at [" + this.getPosition().x + "|" + this.getPosition().y + "]");
                 this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection, this.flapForceVertical, 0));
             }
@@ -64,21 +77,11 @@ var Script;
             return this.rigidBody.getPosition();
         }
         hit() {
-            if (this.alive) {
-                this.alive = false;
-                //this.removeComponent(this.materialAlive);
-                //this.addComponent(this.materialDead);
-                this.setAnimation(this.chickenDeathAnimation);
-            }
+            this.stateMachine.transit(CHICKEN_STATE.DEAD);
+            this.setAnimation(this.chickenDeathAnimation);
         }
-        get alive() {
-            return this._alive;
-        }
-        set alive(_alive) {
-            this._alive = _alive;
-        }
-        get collisionGroup() {
-            return this.rigidBody.collisionGroup;
+        get currentState() {
+            return this.stateMachine.stateCurrent;
         }
     }
     Chicken.MASS = 1;
@@ -86,6 +89,59 @@ var Script;
     Chicken.REFLECT_VECTOR_X = ƒ.Vector3.X();
     Chicken.REFLECT_VECTOR_Y = ƒ.Vector3.Y();
     Script.Chicken = Chicken;
+})(Script || (Script = {}));
+var Script;
+(function (Script) {
+    var ƒaid = FudgeAid;
+    class ComponentStateMachineChicken extends ƒaid.ComponentStateMachine {
+        constructor() {
+            super();
+            this.instructions = ComponentStateMachineChicken.instructions;
+        }
+        static setupStateMachine() {
+            let setup = new ƒaid.StateMachineInstructions();
+            // Do this when the player wants to shoot
+            setup.setAction(Script.CHICKEN_STATE.ALIVE, (_machine) => {
+                let chick = _machine.node;
+                if (chick instanceof Script.Chicken) {
+                    chick.flap();
+                }
+                else {
+                    console.error("Attached node is not a Chicken");
+                }
+            });
+            setup.setTransition(Script.CHICKEN_STATE.ALIVE, Script.CHICKEN_STATE.DEAD, (_machine) => {
+                console.log("BOOM, HEADSHOT!");
+            });
+            setup.setAction(Script.CHICKEN_STATE.DEAD, (_machine) => {
+                let chick = _machine.node;
+                if (chick instanceof Script.Chicken) {
+                }
+                else {
+                    console.error("Attached node is not a Chicken");
+                }
+            });
+            // TODO transit between RELOAD and READO_TO_SHOOT and GAME_OVER
+            //setup.setAction(JOB.PATROL, (_machine) => {
+            //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
+            //  // console.log(container);
+            //  if (container.mtxLocal.translation.equals(container.posTarget, 0.1))
+            //    _machine.transit(JOB.IDLE);
+            //  container.move();
+            //});
+            //
+            //setup.setTransition(JOB.PATROL, JOB.IDLE, (_machine) => {
+            //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
+            //  ƒ.Time.game.setTimer(3000, 1, (_event: ƒ.EventTimer) => {
+            //    container.chooseTargetPosition();
+            //    _machine.transit(JOB.PATROL);
+            //  })
+            //});
+            return setup;
+        }
+    }
+    ComponentStateMachineChicken.instructions = ComponentStateMachineChicken.setupStateMachine();
+    Script.ComponentStateMachineChicken = ComponentStateMachineChicken;
 })(Script || (Script = {}));
 var Script;
 (function (Script) {
@@ -162,7 +218,7 @@ var Script;
         //Shot Event
         Script.viewport.canvas.addEventListener("pointerdown", (_event) => { player.pickByRadius(_event); });
         // Load resources 
-        Script.chickenSpriteSheet.load("./images/chickenSpriteSheetEigen.jpg");
+        Script.chickenSpriteSheet.load("./images/chickenSpriteSheetEigen.png");
         Script.Hud.start(player);
         ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
@@ -207,31 +263,33 @@ var Script;
     //ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
     //}
     function update(_event) {
+        // Game over screen
+        if (player.playerLives <= 0 && !gameOverShown) {
+            gameOverShown = true;
+            alert("Game Over. Reload to play again or press 'OK'");
+            window.location.reload();
+        }
         ƒ.Physics.simulate();
         spawnChicken();
         // Simulate chickens
         for (let chicken of Script.chickenContainer.getChildren()) {
             if (chicken instanceof Script.Chicken) {
-                if ((chicken.getPosition().x < leftSpawn - 1 || chicken.getPosition().x > rightSpawn + 1) && chicken.alive) {
+                if ((chicken.getPosition().x < leftSpawn - 1 || chicken.getPosition().x > rightSpawn + 1) && chicken.currentState == Script.CHICKEN_STATE.ALIVE) {
                     console.log("Chicken made it unharmed. Releasing into the wild... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
                     Script.chickenContainer.removeChild(chicken);
                     player.removeLive();
+                    Script.Hud.forceUpdate(); //The UI doesn't update fast enough, so when the player health drops to 0 and the game-over popup shows, the health is still shown as '1'. To prevent this, force the UI to update NOW
                 }
-                else if (chicken.getPosition().y < -5 && !chicken.alive) {
+                else if (chicken.getPosition().y < -5 && chicken.currentState == Script.CHICKEN_STATE.DEAD) {
                     console.log("Cleaning up dead chicken from the ground... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
                     Script.chickenContainer.removeChild(chicken);
                 }
                 else {
-                    chicken.move();
+                    chicken.update();
                 }
             }
         }
         ;
-        // Game over screen
-        if (player.playerLives <= 0 && !gameOverShown) {
-            gameOverShown = true;
-            alert("Game Over");
-        }
         Script.viewport.draw();
     }
     //mtxLocal.translation.y = 0 matrix translation an Y
@@ -240,12 +298,6 @@ var Script;
 var Script;
 (function (Script) {
     var ƒ = FudgeCore;
-    let PLAYER_STATE;
-    (function (PLAYER_STATE) {
-        PLAYER_STATE[PLAYER_STATE["READY_TO_SHOOT"] = 0] = "READY_TO_SHOOT";
-        PLAYER_STATE[PLAYER_STATE["RELOAD"] = 1] = "RELOAD";
-        PLAYER_STATE[PLAYER_STATE["GAME_OVER"] = 2] = "GAME_OVER";
-    })(PLAYER_STATE = Script.PLAYER_STATE || (Script.PLAYER_STATE = {}));
     class Player extends ƒ.Mutable {
         constructor(lives) {
             super();
@@ -263,6 +315,7 @@ var Script;
             let compare = Math.pow(0.7, 2);
             this.cmpAudio.play(true);
             console.log("schuss");
+            this.ammo--;
             for (let chicken of Script.chickenContainer.getChildren()) {
                 if (compare < ray.getDistance(chicken.mtxWorld.translation).magnitudeSquared)
                     continue;
@@ -311,56 +364,14 @@ var Script;
 })(Script || (Script = {}));
 var Script;
 (function (Script) {
-    var ƒaid = FudgeAid;
-    class ComponentStateMachineEnemy extends ƒaid.ComponentStateMachine {
-        constructor() {
-            super();
-            this.instructions = ComponentStateMachineEnemy.instructions;
-        }
-        static setupStateMachine() {
-            let setup = new ƒaid.StateMachineInstructions();
-            // Do this when the player wants to shoot
-            setup.setAction(Script.PLAYER_STATE.READY_TO_SHOOT, (_machine) => {
-                let player = _machine.node;
-                if (player instanceof Script.Player) {
-                    if (player.ammo > 0) {
-                        // TODO what to do here? Can't pass PointerEvent?
-                        //player.pickByRadius();
-                    }
-                    else {
-                        _machine.transit(Script.PLAYER_STATE.RELOAD);
-                    }
-                }
-            });
-            // TODO transit between RELOAD and READO_TO_SHOOT and GAME_OVER
-            //setup.setAction(JOB.PATROL, (_machine) => {
-            //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
-            //  // console.log(container);
-            //  if (container.mtxLocal.translation.equals(container.posTarget, 0.1))
-            //    _machine.transit(JOB.IDLE);
-            //  container.move();
-            //});
-            //
-            //setup.setTransition(JOB.PATROL, JOB.IDLE, (_machine) => {
-            //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
-            //  ƒ.Time.game.setTimer(3000, 1, (_event: ƒ.EventTimer) => {
-            //    container.chooseTargetPosition();
-            //    _machine.transit(JOB.PATROL);
-            //  })
-            //});
-            return setup;
-        }
-    }
-    ComponentStateMachineEnemy.instructions = ComponentStateMachineEnemy.setupStateMachine();
-    Script.ComponentStateMachineEnemy = ComponentStateMachineEnemy;
-})(Script || (Script = {}));
-var Script;
-(function (Script) {
     var ƒui = FudgeUserInterface;
     class Hud {
         static start(player) {
             let domHud = document.querySelector("div#hud");
             Hud.controller = new ƒui.Controller(player, domHud);
+            Hud.controller.updateUserInterface();
+        }
+        static forceUpdate() {
             Hud.controller.updateUserInterface();
         }
     }

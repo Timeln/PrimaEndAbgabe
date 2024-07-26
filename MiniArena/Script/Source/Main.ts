@@ -41,7 +41,7 @@ namespace Script {
 
     // Load resources 
    
-    chickenSpriteSheet.load("./images/chickenSpriteSheetEigen.jpg");
+    chickenSpriteSheet.load("./images/chickenSpriteSheetEigen.png");
       Hud.start(player);
 
     ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
@@ -101,31 +101,37 @@ namespace Script {
    //}
 
   function update(_event: Event): void {
+    
+      // Game over screen
+    if(player.playerLives <= 0 && !gameOverShown) {
+      gameOverShown = true;
+      
+      alert("Game Over. Reload to play again or press 'OK'");
+      window.location.reload();
+    }
+
     ƒ.Physics.simulate();
     spawnChicken();
-    
     
     // Simulate chickens
     for (let chicken of chickenContainer.getChildren()) {
       if(chicken instanceof Chicken) {
-        if((chicken.getPosition().x < leftSpawn - 1 || chicken.getPosition().x > rightSpawn + 1) && chicken.alive) {
+        if((chicken.getPosition().x < leftSpawn - 1 || chicken.getPosition().x > rightSpawn + 1) && chicken.currentState == CHICKEN_STATE.ALIVE) {
           console.log("Chicken made it unharmed. Releasing into the wild... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
           chickenContainer.removeChild(chicken);
-          player.removeLive()
-        } else if(chicken.getPosition().y < -5 && !chicken.alive) {
+          player.removeLive();
+          Hud.forceUpdate(); //The UI doesn't update fast enough, so when the player health drops to 0 and the game-over popup shows, the health is still shown as '1'. To prevent this, force the UI to update NOW
+        } else if(chicken.getPosition().y < -5 && chicken.currentState == CHICKEN_STATE.DEAD) {
           console.log("Cleaning up dead chicken from the ground... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
           chickenContainer.removeChild(chicken);
         } else {
-          chicken.move();
+          chicken.update();
         }
       }
     };
 
-    // Game over screen
-    if(player.playerLives <= 0 && !gameOverShown) {
-      gameOverShown = true;
-      alert("Game Over");
-    }
+
+
     viewport.draw();
   }
 //mtxLocal.translation.y = 0 matrix translation an Y

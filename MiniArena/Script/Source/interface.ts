@@ -13,5 +13,8 @@ namespace Script {
         Hud.controller = new ƒui.Controller(player, domHud);
         Hud.controller.updateUserInterface();
       }
+      public static forceUpdate(): void {
+        Hud.controller.updateUserInterface();
+      }
     }
   }
