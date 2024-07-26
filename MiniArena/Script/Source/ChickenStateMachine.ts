@@ -23,7 +23,7 @@ namespace Script {
       });
 
       setup.setTransition(CHICKEN_STATE.ALIVE, CHICKEN_STATE.DEAD, (_machine) => {
-        console.log("BOOM, HEADSHOT!");
+        console.log("Chicken shot.");
       });
       setup.setAction(CHICKEN_STATE.DEAD, (_machine) => {
         let chick: ƒ.Node = (<ƒaid.ComponentStateMachine<CHICKEN_STATE>>_machine).node;
@@ -33,29 +33,6 @@ namespace Script {
           console.error("Attached node is not a Chicken");
         }
       })
-
-
-
-      // TODO transit between RELOAD and READO_TO_SHOOT and GAME_OVER
-
-
-
-      //setup.setAction(JOB.PATROL, (_machine) => {
-      //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
-      //  // console.log(container);
-      //  if (container.mtxLocal.translation.equals(container.posTarget, 0.1))
-      //    _machine.transit(JOB.IDLE);
-      //  container.move();
-      //});
-//
-      //setup.setTransition(JOB.PATROL, JOB.IDLE, (_machine) => {
-      //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
-      //  ƒ.Time.game.setTimer(3000, 1, (_event: ƒ.EventTimer) => {
-      //    container.chooseTargetPosition();
-      //    _machine.transit(JOB.PATROL);
-      //  })
-      //});
-
       return setup;
     }
   }

@@ -1,6 +1,5 @@
 namespace Script {
   import ƒ = FudgeCore;
-  //import ƒAid = FudgeAid;
   ƒ.Debug.info("Main Program Template running!");
 
   export let graph: ƒ.Node;
@@ -26,15 +25,11 @@ namespace Script {
     chickenContainer = new ƒ.Node("ChickenContainer");
     graph.addChild(chickenContainer);
     let cmpCamera: ƒ.ComponentCamera = viewport.getBranch().getComponent(ƒ.ComponentCamera);
-    //console.log("Camera is at (" + cmpCamera.get+ "" + + "|" + + ")")
     viewport.camera = cmpCamera;
     rng = new ƒ.Random(0); // TODO non-deterministc seed
     time = new ƒ.Time();
 
     player = new Player(3);
-
-
-    
 
     //Shot Event
     viewport.canvas.addEventListener("pointerdown", (_event) => {player.pickByRadius(_event)});
@@ -45,26 +40,21 @@ namespace Script {
       Hud.start(player);
 
     ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
-    ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
+    ƒ.Loop.start();
   }
-  
+
     // Spawning
     let minSpawnInterval: number = 1500; // In miliseconds
     let timeSinceLastSpawn: number = 0;
     let leftSpawn = -12;
     let rightSpawn = 12;
-    //let minChickenSpeed: number = 0.1;
-    //let maxChickenSpeed: number = 1.0;
-
     let maxChickens: number = 5;
-
-    
     let gameOverShown: boolean = false;
-    let animation: string = "";
-    let AVAILABLE_COLLISION_GROUPS: ƒ.COLLISION_GROUP[] = [ƒ.COLLISION_GROUP.GROUP_1, ƒ.COLLISION_GROUP.GROUP_2, ƒ.COLLISION_GROUP.GROUP_3, ƒ.COLLISION_GROUP.GROUP_4, ƒ.COLLISION_GROUP.GROUP_5];
+
+
   // Should we spawn a chicken in this frame or not?
   function spawnChicken(): void {
-    let now: number = time.get();
+  let now: number = time.get();
     
     // Enough time elapsed to spawn a new chicken?
     if(now - timeSinceLastSpawn > minSpawnInterval && chickenContainer.getChildren().length < maxChickens) {
@@ -86,23 +76,10 @@ namespace Script {
       chickenContainer.addChild(newChicken);
     }
   }
-  
-   //async function chickenNodeInit(_event: Event): Promise<void> {
-     
-     
-     //let coat: ƒ.CoatTextured = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
-     
-    //graph = viewport.getBranch();
-     //graph.addChild(chickenAvatar);
-
-
-     //ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
-     //ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
-   //}
 
   function update(_event: Event): void {
     
-      // Game over screen
+    // Game over screen
     if(player.playerLives <= 0 && !gameOverShown) {
       gameOverShown = true;
       
@@ -134,6 +111,4 @@ namespace Script {
 
     viewport.draw();
   }
-//mtxLocal.translation.y = 0 matrix translation an Y
-//mtxLocal.translation = V neuer Vektor
 }

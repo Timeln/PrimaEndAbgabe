@@ -11,14 +11,7 @@ var Script;
     class Chicken extends ƒAid.NodeSprite {
         constructor(_name, _position, _size, flyDirection, verticalFlapForce) {
             super(_name);
-            this.animationstate = "fly";
-            //private readonly mtrSolidWhite: ƒ.Material;
-            //private readonly mtrSolidRed: ƒ.Material;
-            //private readonly materialAlive: ƒ.ComponentMaterial;
-            //private readonly materialDead: ƒ.ComponentMaterial;
-            this.meshQuad = new ƒ.MeshQuad();
             this.rigidBody = new ƒ.ComponentRigidbody(Chicken.MASS);
-            //private _alive: boolean = true;
             this.velocity = ƒ.Vector3.ZERO();
             this.coat = new ƒ.CoatTextured(undefined, Script.chickenSpriteSheet);
             this.stateMachine = new Script.ComponentStateMachineChicken();
@@ -30,9 +23,6 @@ var Script;
             this.rigidBody.effectGravity = 0.1;
             this.rigidBody.applyLinearImpulse(new ƒ.Vector3(flyDirection, 0, 0));
             this.addComponent(this.rigidBody);
-            let cmpQuad = new ƒ.ComponentMesh(this.meshQuad);
-            //this.addComponent(cmpQuad);
-            //this.addComponent(this.materialAlive);
             this.addComponent(this.stateMachine);
             this.stateMachine.stateCurrent = CHICKEN_STATE.ALIVE;
             this.initAnimations();
@@ -50,19 +40,7 @@ var Script;
         update() {
             this.stateMachine.act();
         }
-        /**
-         * move moves the game object and the collision detection reactangle
-         */
-        //public move(): void {
-        //  //let frameTime: number = ƒ.Loop.timeFrameGame / 1000;
-        //
-        //  //let force: ƒ.Vector3 = ƒ.Vector3.SCALE(new ƒ.Vector3(0, 9.81, 0), frameTime);
-        //
-        //  this.flap();
-        //  //this.translate(distance);
-        //}
         flap() {
-            //console.log("Current velocity: " + this.rigidBody.getVelocity().y);
             if (this.currentState == CHICKEN_STATE.ALIVE && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
                 console.log("FLAP! I am at [" + this.getPosition().x + "|" + this.getPosition().y + "]");
                 this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection, this.flapForceVertical, 0));
@@ -86,8 +64,6 @@ var Script;
     }
     Chicken.MASS = 1;
     Chicken.FLAP_THRESHOLD = -2;
-    Chicken.REFLECT_VECTOR_X = ƒ.Vector3.X();
-    Chicken.REFLECT_VECTOR_Y = ƒ.Vector3.Y();
     Script.Chicken = Chicken;
 })(Script || (Script = {}));
 var Script;
@@ -111,7 +87,7 @@ var Script;
                 }
             });
             setup.setTransition(Script.CHICKEN_STATE.ALIVE, Script.CHICKEN_STATE.DEAD, (_machine) => {
-                console.log("BOOM, HEADSHOT!");
+                console.log("Chicken shot.");
             });
             setup.setAction(Script.CHICKEN_STATE.DEAD, (_machine) => {
                 let chick = _machine.node;
@@ -121,22 +97,6 @@ var Script;
                     console.error("Attached node is not a Chicken");
                 }
             });
-            // TODO transit between RELOAD and READO_TO_SHOOT and GAME_OVER
-            //setup.setAction(JOB.PATROL, (_machine) => {
-            //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
-            //  // console.log(container);
-            //  if (container.mtxLocal.translation.equals(container.posTarget, 0.1))
-            //    _machine.transit(JOB.IDLE);
-            //  container.move();
-            //});
-            //
-            //setup.setTransition(JOB.PATROL, JOB.IDLE, (_machine) => {
-            //  let container: Enemy = <Enemy>(<ƒaid.ComponentStateMachine<JOB>>_machine).getContainer();
-            //  ƒ.Time.game.setTimer(3000, 1, (_event: ƒ.EventTimer) => {
-            //    container.chooseTargetPosition();
-            //    _machine.transit(JOB.PATROL);
-            //  })
-            //});
             return setup;
         }
     }
@@ -146,53 +106,6 @@ var Script;
 var Script;
 (function (Script) {
     var ƒ = FudgeCore;
-    ƒ.Project.registerScriptNamespace(Script); // Register the namespace to FUDGE for serialization
-    class CustomComponentScript extends ƒ.ComponentScript {
-        constructor() {
-            super();
-            // Properties may be mutated by users in the editor via the automatically created user interface
-            this.message = "CustomComponentScript added to ";
-            // Activate the functions of this component as response to events
-            this.hndEvent = (_event) => {
-                switch (_event.type) {
-                    case "componentAdd" /* COMPONENT_ADD */:
-                        ƒ.Debug.log(this.message, this.node);
-                        break;
-                    case "componentRemove" /* COMPONENT_REMOVE */:
-                        this.removeEventListener("componentAdd" /* COMPONENT_ADD */, this.hndEvent);
-                        this.removeEventListener("componentRemove" /* COMPONENT_REMOVE */, this.hndEvent);
-                        break;
-                    case "nodeDeserialized" /* NODE_DESERIALIZED */:
-                        // if deserialized the node is now fully reconstructed and access to all its components and children is possible
-                        break;
-                }
-            };
-            // Don't start when running in editor
-            if (ƒ.Project.mode == ƒ.MODE.EDITOR)
-                return;
-            // Listen to this component being added to or removed from a node
-            this.addEventListener("componentAdd" /* COMPONENT_ADD */, this.hndEvent);
-            this.addEventListener("componentRemove" /* COMPONENT_REMOVE */, this.hndEvent);
-            this.addEventListener("nodeDeserialized" /* NODE_DESERIALIZED */, this.hndEvent);
-        }
-    }
-    // Register the script as component for use in the editor via drag&drop
-    CustomComponentScript.iSubclass = ƒ.Component.registerSubclass(CustomComponentScript);
-    Script.CustomComponentScript = CustomComponentScript;
-    // export function moveEnemy(){
-    //   NPC= viewport.getBranch().getChildrenByName("NPC")[0];
-    //   enemyrigidbody = NPC.getComponent(ƒ.ComponentRigidbody);
-    //   let positionSteve: ƒ.Vector3 = knuckles.mtxWorld.translation;
-    //   let positionCreeper: ƒ.Vector3 = NPC.mtxWorld.translation;
-    //   let movementVector= ƒ.Vector3.DIFFERENCE(positionSteve, positionCreeper);
-    //   movementVector.normalize(100);
-    //   enemyrigidbody.applyForce(movementVector);
-    // }
-})(Script || (Script = {}));
-var Script;
-(function (Script) {
-    var ƒ = FudgeCore;
-    //import ƒAid = FudgeAid;
     ƒ.Debug.info("Main Program Template running!");
     let rng;
     let time;
@@ -210,7 +123,6 @@ var Script;
         Script.chickenContainer = new ƒ.Node("ChickenContainer");
         Script.graph.addChild(Script.chickenContainer);
         let cmpCamera = Script.viewport.getBranch().getComponent(ƒ.ComponentCamera);
-        //console.log("Camera is at (" + cmpCamera.get+ "" + + "|" + + ")")
         Script.viewport.camera = cmpCamera;
         rng = new ƒ.Random(0); // TODO non-deterministc seed
         time = new ƒ.Time();
@@ -221,19 +133,15 @@ var Script;
         Script.chickenSpriteSheet.load("./images/chickenSpriteSheetEigen.png");
         Script.Hud.start(player);
         ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
-        ƒ.Loop.start(); //(ƒ.LOOP_MODE.TIME_GAME, 30);  // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
+        ƒ.Loop.start();
     }
     // Spawning
     let minSpawnInterval = 1500; // In miliseconds
     let timeSinceLastSpawn = 0;
     let leftSpawn = -12;
     let rightSpawn = 12;
-    //let minChickenSpeed: number = 0.1;
-    //let maxChickenSpeed: number = 1.0;
     let maxChickens = 5;
     let gameOverShown = false;
-    let animation = "";
-    let AVAILABLE_COLLISION_GROUPS = [ƒ.COLLISION_GROUP.GROUP_1, ƒ.COLLISION_GROUP.GROUP_2, ƒ.COLLISION_GROUP.GROUP_3, ƒ.COLLISION_GROUP.GROUP_4, ƒ.COLLISION_GROUP.GROUP_5];
     // Should we spawn a chicken in this frame or not?
     function spawnChicken() {
         let now = time.get();
@@ -255,13 +163,6 @@ var Script;
             Script.chickenContainer.addChild(newChicken);
         }
     }
-    //async function chickenNodeInit(_event: Event): Promise<void> {
-    //let coat: ƒ.CoatTextured = new ƒ.CoatTextured(undefined, chickenSpriteSheet);
-    //graph = viewport.getBranch();
-    //graph.addChild(chickenAvatar);
-    //ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
-    //ƒ.Loop.start(ƒ.LOOP_MODE.FRAME_REQUEST, 30);
-    //}
     function update(_event) {
         // Game over screen
         if (player.playerLives <= 0 && !gameOverShown) {
@@ -292,8 +193,6 @@ var Script;
         ;
         Script.viewport.draw();
     }
-    //mtxLocal.translation.y = 0 matrix translation an Y
-    //mtxLocal.translation = V neuer Vektor
 })(Script || (Script = {}));
 var Script;
 (function (Script) {
@@ -302,7 +201,6 @@ var Script;
         constructor(lives) {
             super();
             this.score = 0;
-            this.ammo = 5;
             this.createSoundNode();
             this.health = lives;
         }
@@ -315,7 +213,6 @@ var Script;
             let compare = Math.pow(0.7, 2);
             this.cmpAudio.play(true);
             console.log("schuss");
-            this.ammo--;
             for (let chicken of Script.chickenContainer.getChildren()) {
                 if (compare < ray.getDistance(chicken.mtxWorld.translation).magnitudeSquared)
                     continue;
@@ -338,19 +235,8 @@ var Script;
             }
         }
         createSoundNode() {
-            // Lade die Sounddatei
             let audio = new ƒ.Audio("./Sounds/shot.mp3");
-            // Erstelle die Audio-Komponente und füge die geladene Sounddatei hinzu
             this.cmpAudio = new ƒ.ComponentAudio(audio, false, false);
-            // Erstelle einen Knoten, um die Audio-Komponente zu hosten, und füge die Audio-Komponente hinzu
-            Script.graph.addComponent(this.cmpAudio);
-        }
-        createReloadSoundNode() {
-            // Lade die Sounddatei
-            let audio = new ƒ.Audio("./Sounds/reload.mp3");
-            // Erstelle die Audio-Komponente und füge die geladene Sounddatei hinzu
-            this.cmpAudio = new ƒ.ComponentAudio(audio, false, false);
-            // Erstelle einen Knoten, um die Audio-Komponente zu hosten, und füge die Audio-Komponente hinzu
             Script.graph.addComponent(this.cmpAudio);
         }
         removeLive() {

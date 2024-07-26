@@ -7,7 +7,6 @@ namespace Script {
       private cmpAudio: ƒ.ComponentAudio;
       public health: number; // Every time a chicken survives, this counts down. When 0, the player loses
       public score:number = 0 ;
-      public ammo: number = 5;
       protected reduceMutator(_mutator: ƒ.Mutator): void {/* */ }
       public constructor(lives: number) {
         super();
@@ -21,10 +20,8 @@ namespace Script {
         let shortest: number;
         let found: ƒ.Node;
         let compare: number = Math.pow(0.7, 2);
-  
         this.cmpAudio.play(true);
         console.log("schuss");
-        this.ammo--;
         
         for (let chicken of chickenContainer.getChildren()) {
           if (compare < ray.getDistance(chicken.mtxWorld.translation).magnitudeSquared)
@@ -52,31 +49,12 @@ namespace Script {
       }
 
       public createSoundNode(): void {
-
-        // Lade die Sounddatei
         let audio: ƒ.Audio = new ƒ.Audio("./Sounds/shot.mp3");
-
-        // Erstelle die Audio-Komponente und füge die geladene Sounddatei hinzu
         this.cmpAudio = new ƒ.ComponentAudio(audio, false, false);
-      
-        // Erstelle einen Knoten, um die Audio-Komponente zu hosten, und füge die Audio-Komponente hinzu
         graph.addComponent(this.cmpAudio);
 
         }
-  
-        public createReloadSoundNode(): void {
-
-          // Lade die Sounddatei
-          let audio: ƒ.Audio = new ƒ.Audio("./Sounds/reload.mp3");
-  
-          // Erstelle die Audio-Komponente und füge die geladene Sounddatei hinzu
-          this.cmpAudio = new ƒ.ComponentAudio(audio, false, false);
         
-          // Erstelle einen Knoten, um die Audio-Komponente zu hosten, und füge die Audio-Komponente hinzu
-          graph.addComponent(this.cmpAudio);
-  
-          }
-
           public removeLive(): void {
             this.health--;
           }

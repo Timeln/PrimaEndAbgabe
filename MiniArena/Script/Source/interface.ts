@@ -1,10 +1,6 @@
 namespace Script {
-    import ƒ = FudgeCore;
-    import ƒAid = FudgeAid;
     import ƒui = FudgeUserInterface;
 
-
-  
     export class Hud {
       private static controller: ƒui.Controller;
   

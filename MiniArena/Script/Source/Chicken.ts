@@ -9,24 +9,10 @@ namespace Script {
   export class Chicken extends ƒAid.NodeSprite {
     private static readonly MASS: number = 1;
     private static readonly FLAP_THRESHOLD: number = -2;
-    
-    private static readonly REFLECT_VECTOR_X: ƒ.Vector3 = ƒ.Vector3.X();
-    private static readonly REFLECT_VECTOR_Y: ƒ.Vector3 = ƒ.Vector3.Y();
-
-    private readonly animationstate: string = "fly";
-
-    //private readonly mtrSolidWhite: ƒ.Material;
-    //private readonly mtrSolidRed: ƒ.Material;
-    //private readonly materialAlive: ƒ.ComponentMaterial;
-    //private readonly materialDead: ƒ.ComponentMaterial;
-    private readonly meshQuad: ƒ.MeshQuad = new ƒ.MeshQuad();
-
     private readonly rigidBody: ƒ.ComponentRigidbody = new ƒ.ComponentRigidbody(Chicken.MASS);
-
     public rect: ƒ.Rectangle;
     private flyDirection: number;
     private flapForceVertical: number;
-    //private _alive: boolean = true;
     public velocity: ƒ.Vector3 = ƒ.Vector3.ZERO();
 
     //Sprite Animations
@@ -59,34 +45,17 @@ namespace Script {
       this.rigidBody.effectGravity = 0.1;
       this.rigidBody.applyLinearImpulse(new ƒ.Vector3(flyDirection, 0, 0));
       this.addComponent(this.rigidBody);
-      let cmpQuad: ƒ.ComponentMesh = new ƒ.ComponentMesh(this.meshQuad);
-      //this.addComponent(cmpQuad);
-
-      //this.addComponent(this.materialAlive);
       this.addComponent(this.stateMachine);
       this.stateMachine.stateCurrent = CHICKEN_STATE.ALIVE;
       this.initAnimations();
     }
 
-
     public update(): void {
       this.stateMachine.act();
     }
 
-    /**
-     * move moves the game object and the collision detection reactangle
-     */
-    //public move(): void {
-    //  //let frameTime: number = ƒ.Loop.timeFrameGame / 1000;
-//
-    //  //let force: ƒ.Vector3 = ƒ.Vector3.SCALE(new ƒ.Vector3(0, 9.81, 0), frameTime);
-//
-    //  this.flap();
-    //  //this.translate(distance);
-    //}
 
     public flap(): void {
-      //console.log("Current velocity: " + this.rigidBody.getVelocity().y);
       if (this.currentState == CHICKEN_STATE.ALIVE && this.rigidBody.getVelocity().y < Chicken.FLAP_THRESHOLD) {
         console.log("FLAP! I am at [" + this.getPosition().x + "|" + this.getPosition().y + "]");
         this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection, this.flapForceVertical, 0));
