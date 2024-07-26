@@ -21,10 +21,26 @@ declare namespace Script {
         constructor(_name: string, _position: ƒ.Vector2, _size: ƒ.Vector2, flyDirection: number, verticalFlapForce: number);
         update(): void;
         flap(): void;
-        translate(_distance: ƒ.Vector3): void;
         getPosition(): ƒ.Vector3;
         hit(): void;
         get currentState(): CHICKEN_STATE;
+    }
+}
+declare namespace Script {
+    import ƒ = FudgeCore;
+    class ChickenHandler extends ƒ.ComponentScript {
+        static readonly iSubclass: number;
+        spawnLeft: number;
+        spawnRight: number;
+        despawnThreshold: number;
+        maxChickens: number;
+        spawnInterval: number;
+        private timeSinceLastSpawn;
+        private readonly handlerTime;
+        constructor();
+        hndEvent: (_event: Event) => void;
+        private spawnChicken;
+        update: (_event: Event) => void;
     }
 }
 declare namespace Script {
@@ -40,6 +56,11 @@ declare namespace Script {
     let graph: ƒ.Node;
     let viewport: ƒ.Viewport;
     let chickenContainer: ƒ.Node;
+    let rng: ƒ.Random;
+    let player: Player;
+    let config: {
+        [key: string]: number;
+    };
     let chickenSpriteSheet: ƒ.TextureImage;
 }
 declare namespace Script {

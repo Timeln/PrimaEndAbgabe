@@ -202,58 +202,19 @@
         },
         {
           "ƒ.Node": {
-            "name": "Charakter",
-            "active": true,
-            "components": {},
-            "children": [
-              {
-                "ƒ.Node": {
-                  "name": "chicken",
-                  "active": true,
-                  "components": {
-                    "ComponentMesh": [
-                      {
-                        "ƒ.ComponentMesh": {
-                          "idMesh": "MeshQuad|2023-03-22T14:15:43.367Z|55732",
-                          "pivot": {
-                            "translation": "[0, 0, 0]",
-                            "rotation": "[0, 0, 0]",
-                            "scaling": "[1, 1, 1]"
-                          },
-                          "Component": {
-                            "active": true
-                          }
-                        }
-                      }
-                    ]
-                  },
-                  "children": []
-                }
-              }
-            ]
-          }
-        },
-        {
-          "ƒ.Node": {
-            "name": "Light",
+            "name": "GameHandler",
             "active": true,
             "components": {
-              "ComponentLight": [
+              "ChickenHandler": [
                 {
-                  "ƒ.ComponentLight": {
-                    "pivot": {
-                      "translation": "[0, 0, 0]",
-                      "rotation": "[0, 0, 0]",
-                      "scaling": "[1, 1, 1]"
-                    },
-                    "light": {
-                      "ƒ.LightAmbient": {
-                        "color": "[0.9333333333333333, 0, 1, 1]"
-                      }
-                    },
-                    "Component": {
-                      "active": true
-                    }
+                  "Script.ChickenHandler": {
+                    "active": true,
+                    "spawnLeft": -12,
+                    "spawnRight": 12,
+                    "despawnThreshold": 1,
+                    "maxChickens": 5,
+                    "spawnInterval": 1500,
+                    "timeSinceLastSpawn": 0
                   }
                 }
               ]

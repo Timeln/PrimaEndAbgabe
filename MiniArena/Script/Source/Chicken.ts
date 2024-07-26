@@ -61,12 +61,7 @@ namespace Script {
         this.rigidBody.applyLinearImpulse(new ƒ.Vector3(this.flyDirection, this.flapForceVertical, 0));
       }
     }
-
-    public translate(_distance: ƒ.Vector3): void {
-      this.mtxLocal.translate(_distance);
-      this.rect.position.x = this.mtxLocal.translation.x - this.rect.size.x / 2;
-      this.rect.position.y = this.mtxLocal.translation.y - this.rect.size.y / 2;
-    }
+    
     public getPosition(): ƒ.Vector3 {
       return this.rigidBody.getPosition();
     }

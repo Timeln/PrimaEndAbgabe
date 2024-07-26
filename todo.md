@@ -15,8 +15,8 @@
 
 --- Overal Private
 
-[] Cleanup
-[] Documentation
+[X] Cleanup
+[X] Documentation
 [] Death animation should stop at last frame
 --- Bugs
 [X] Chicken still collide (-> set the collision mask=0, not group)
