@@ -31,6 +31,8 @@ Github Repo: https://github.com/Timeln/PrimaEndAbgabe
 
 4   Scriptcomponents
 
+    ChickenHandler ist eine Scriptcomponent. 
+    Sie hilft ein bisschen den Code der Main.ts übersichtlicher zu halten aber wäre nicht unbedingt nötig gewesen
 
 5   Extend
 

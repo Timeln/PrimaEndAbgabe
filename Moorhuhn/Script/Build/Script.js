@@ -204,7 +204,6 @@ var Script;
         let cmpCamera = Script.viewport.getBranch().getComponent(ƒ.ComponentCamera);
         Script.viewport.camera = cmpCamera;
         Script.rng = new ƒ.Random(0); // TODO non-deterministc seed
-        //time = new ƒ.Time();
         Script.player = new Script.Player(3);
         //Shot Event
         Script.viewport.canvas.addEventListener("pointerdown", (_event) => { Script.player.pickByRadius(_event); });
@@ -214,37 +213,7 @@ var Script;
         ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
         ƒ.Loop.start();
     }
-    // Spawning
-    //let minSpawnInterval: number = 1500; // In miliseconds
-    //let timeSinceLastSpawn: number = 0;
-    //let leftSpawn = -12;
-    //let rightSpawn = 12;
-    //let maxChickens: number = 5;
     let gameOverShown = false;
-    // Should we spawn a chicken in this frame or not?
-    //function spawnChicken(): void {
-    //let now: number = time.get();
-    //  
-    //  // Enough time elapsed to spawn a new chicken?
-    //  if(now - timeSinceLastSpawn > minSpawnInterval && chickenContainer.getChildren().length < maxChickens) {
-    //    timeSinceLastSpawn = now;
-    //    let spawnPos: ƒ.Vector2;
-    //    let speed: number;
-    //    if(rng.getBoolean()) {  // Spawn left...
-    //      spawnPos = new ƒ.Vector2(leftSpawn, rng.getRange(-5, 7));
-    //      speed = 1;
-    //    } else {                // ...or right
-    //      spawnPos = new ƒ.Vector2(rightSpawn, rng.getRange(-5, 7));
-    //      speed = -1;
-    //    }
-    //    
-    //    let newChicken : Chicken = new Chicken("Chicken", spawnPos, new ƒ.Vector2(1,1), speed * config.flapForceHorizontal, config.flapForceVertical);
-    //
-    //    console.log(now + ": Spawning chicken at (" + spawnPos.x + "|" + spawnPos.y +") (" + chickenContainer.getChildren.length + ")");
-    //
-    //    chickenContainer.addChild(newChicken);
-    //  }
-    //}
     function update(_event) {
         // Game over screen
         if (Script.player.playerLives <= 0 && !gameOverShown) {
@@ -253,24 +222,6 @@ var Script;
             window.location.reload();
         }
         ƒ.Physics.simulate();
-        //spawnChicken();
-        //
-        //// Simulate chickens
-        //for (let chicken of chickenContainer.getChildren()) {
-        //  if(chicken instanceof Chicken) {
-        //    if((chicken.getPosition().x < leftSpawn - 1 || chicken.getPosition().x > rightSpawn + 1) && chicken.currentState == CHICKEN_STATE.ALIVE) {
-        //      console.log("Chicken made it unharmed. Releasing into the wild... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
-        //      chickenContainer.removeChild(chicken);
-        //      player.removeLive();
-        //      Hud.forceUpdate(); //The UI doesn't update fast enough, so when the player health drops to 0 and the game-over popup shows, the health is still shown as '1'. To prevent this, force the UI to update NOW
-        //    } else if(chicken.getPosition().y < -5 && chicken.currentState == CHICKEN_STATE.DEAD) {
-        //      console.log("Cleaning up dead chicken from the ground... [" + chicken.getPosition().x + "|" + chicken.getPosition().y + "]");
-        //      chickenContainer.removeChild(chicken);
-        //    } else {
-        //      chicken.update();
-        //    }
-        //  }
-        //};
         Script.viewport.draw();
     }
 })(Script || (Script = {}));
