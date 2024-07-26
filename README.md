@@ -11,6 +11,8 @@ Dozent: Jirka Dell´Oro
 
 Spiel: "Moorhuhn"
 
+Github Pages: https://timeln.github.io/PrimaEndAbgabe/Moorhuhn/
+
 Github Repo: https://github.com/Timeln/PrimaEndAbgabe
 
 1   Units and Positions
