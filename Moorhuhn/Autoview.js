@@ -52,7 +52,7 @@ async function startInteractiveViewport(_graphId)/* : void */ {
   viewport.initialize("InteractiveViewport", graph, cmpCamera, canvas);
   ƒ.Debug.log("Viewport:", viewport);  
   // make the camera interactive (complex method in FudgeAid)
-  let cameraOrbit/* : ƒ.Node */ = ƒAid.Viewport.expandCameraToInteractiveOrbit(viewport);
+  //let cameraOrbit/* : ƒ.Node */ = ƒAid.Viewport.expandCameraToInteractiveOrbit(viewport);
 
   // hide the cursor when interacting, also suppressing right-click menu
   canvas.addEventListener("mousedown", canvas.requestPointerLock);
