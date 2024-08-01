@@ -15,6 +15,15 @@ Github Pages: https://timeln.github.io/PrimaEndAbgabe/Moorhuhn/
 
 Github Repo: https://github.com/Timeln/PrimaEndAbgabe
 
+Designdokument: https://timeln.github.io/PrimaEndAbgabe/Dokumentation/
+
+How to Interact:
+
+Nach dem Spielstart kann mit der Maustaste gezielt und mit einem Mausklick auf die Linke Maustaste, geschossen werden.
+Trifft der Spieler ein Huhn erhöht sich sein Score. Bei einem Fehlschuss passiert nichts.
+Schafft es ein Huhn die gesamte Strecke über den Bildschirm zu fliegen, verliert der Spieler eines seiner 3 Leben.
+Bei 0 Leben endet das Spiel.
+
 1   Units and Positions
 
     O ist in der Mitte der Welt, und das Spiel baut sich um den Ursprung herum auf.
