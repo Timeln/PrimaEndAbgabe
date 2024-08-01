@@ -15,7 +15,7 @@ Github Pages: https://timeln.github.io/PrimaEndAbgabe/Moorhuhn/
 
 Github Repo: https://github.com/Timeln/PrimaEndAbgabe
 
-Designdokument: https://timeln.github.io/PrimaEndAbgabe/Dokumentation/
+Designdokument: https://github.com/Timeln/PrimaEndAbgabe/blob/main/Dokumentation.pdf
 
 How to Interact:
 
